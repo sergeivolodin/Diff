@@ -11,6 +11,7 @@ void repeat(char* str,int count=1) {
 		i++;
 	}
 }
+
 class tree {
 	private:
 		void display_math() {
@@ -86,7 +87,7 @@ class tree {
 		//лист
 		tree(char* str): value(str),leaf(true) { }
 		//бинарная операция с деревьями
-		tree(tree *in_a,char* op,tree *in_b): value(op),leaf(false),a(in_a),b(in_b) { }
+		tree(tree *in_a,char* op,tree *in_b): value(op),leaf(false),a(in_a),b(in_b) {}
 		//унарная операция с деревом
 		tree(char *op,tree *in_): value(op),leaf(false),a(in_),b(NULL) {}
 		//бинарная операция с листьями
@@ -140,22 +141,37 @@ class tree {
 					if(value=="-") {
 						nt=new tree("-",a->diff(base));
 					}
+					if(value=="ln") {
+						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",a));
+					}
 					if(value=="sin") {
-						nt=new tree(new tree("-",new tree("cos",a)),"*",a->diff(base));
+						nt=new tree(a->diff(base),"*",new tree("-",new tree("cos",a)));
+					}
+					if(value=="arcsin") {
+						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree("sqrt",new tree(new tree("1"),"-",new tree(a,"^",new tree("2"))))));
+					}
+					if(value=="arccos") {
+						nt=new tree("-",new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree("sqrt",new tree(new tree("1"),"-",new tree(a,"^",new tree("2")))))));
+					}
+					if(value=="arctg") {
+						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree(new tree("1"),"+",new tree(a,"^",new tree("2")))));
+					}
+					if(value=="tg") {
+						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree(new tree("cos",a),"^",new tree("2"))));
 					}
 					if(value=="exp") {
-						nt=new tree(new tree("exp",a),"*",a->diff(base));
+						nt=new tree(a->diff(base),"*",new tree("exp",a));
 					}
 					if(value=="cos") {
-						nt=new tree(new tree("sin",a),"*",a->diff(base));
+						nt=new tree(a->diff(base),"*",new tree("sin",a));
 					}
 					if(value=="sqrt") {
-						nt=new tree(new tree(new tree("1"),"/",new tree(new tree("2"),"*",new tree("sqrt",a))),"*",a->diff(base));
+						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree(new tree("2"),"*",new tree("sqrt",a))));
 					}
 				}
 				else {
 					if(value=="/") {
-						nt=new tree(new tree(new tree(a->diff(base),"*",b),"-",new tree(a,"*",b->diff(base))),"/",new tree(b,"**",new tree("2")));
+						nt=new tree(new tree(new tree(a->diff(base),"*",b),"-",new tree(a,"*",b->diff(base))),"/",new tree(b,"^",new tree("2")));
 					}
 					if(value=="+"||value=="-") {
 						nt=new tree(a->diff(base),value,b->diff(base));
@@ -163,7 +179,7 @@ class tree {
 					if(value=="*") {
 						nt=new tree(new tree(a,"*",b->diff(base)),"+",new tree(a->diff(base),"*",b));
 					}
-					if((value=="^")||(value=="**")) {
+					if(value=="^") {
 						nt=new tree(b,"*",new tree(a,value,new tree(b,"-",new tree("1"))));
 					}
 				}
@@ -187,44 +203,49 @@ class tree {
 			a=newtree->a;
 			b=newtree->b;
 		}
-		tree* easy(int level=0) {
-			tree* nt;
+		tree* easy() {
+			tree *nt,*rt;
 			if(leaf==false) {
 				if(b==NULL) {
-					nt=new tree(value,a->easy());
+					rt=new tree(value,a->easy());
 				}
 				else {
 					nt=new tree(a->easy(),value,b->easy());
-					if((value=="+")||(value=="-")) {
-						if((a->value)=="0") {
-							nt=b->easy();
+					rt=nt;
+					if(value=="+") {
+						if((nt->a->value)=="0") {
+							rt=nt->b->copymem();
 						}
-						if((b->value)=="0") {
-							nt=a->easy();
+						if((nt->b->value)=="0") {
+							rt=nt->a->copymem();
+						}
+					}
+					if(value=="-") {
+						//не менять порядок!
+						if((nt->a->value)=="0") {
+							rt=new tree("-",nt->b);
+						}
+						if((nt->b->value)=="0") {
+							rt=nt->a->copymem();
 						}
 					}
 					if(value=="*") {
-						if((a->leaf==true&&(a->value)=="0")||(b->leaf==true&&(b->value)=="0")) {
-							nt=new tree("0");
+						if((nt->a->leaf==true&&nt->a->value=="0")||(nt->b->leaf==true&&nt->b->value=="0")) {
+							rt=new tree("0");
 						}
-						if((a->value)=="1") {
-							nt=b->easy();
+						if((nt->a->value)=="1") {
+							rt=nt->b;
 						}
-						if((b->value)=="1") {
-							nt=a->easy();
+						if((nt->b->value)=="1") {
+							rt=nt->a;
 						}
 					}
 				}
 			}
 			else {
-				nt=new tree(value);
+				rt=new tree(value);
 			}
-			if(level<=1) {
-				return nt->easy(level+1);
-			}
-			else {
-				return nt;
-			}
+			return rt;
 		}
 		void display(int type=TREE_DDEFAULT) {
 			bool inrange=false;
@@ -244,7 +265,7 @@ class tree {
 int main()
 {
 //	tree tree2(new tree("exp",new tree("2","*","x")),"/",new tree("sin",new tree(new tree("2","*","x"),"+",new tree("6"))));
-	tree tree2("x");
+	tree tree2("tg",new tree("x","*","2"));
 	cout << "Equal:" << endl;
 	tree2.display();
 	cout << endl <<  "Easy equal:" << endl;
