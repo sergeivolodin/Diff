@@ -1,6 +1,9 @@
 #include <iostream>
 #include <iomanip>
 using namespace std;
+const int TREE_DMATH=0;
+const int TREE_DTREE=1;
+const int TREE_DDEFAULT=TREE_DMATH;
 void repeat(char* str,int count=1) {
 	int i=1;
 	while(i<=count) {
@@ -8,50 +11,112 @@ void repeat(char* str,int count=1) {
 		i++;
 	}
 }
-class btree {
+class tree {
 	private:
-		//Операция (если не лист)|значение (если лист)
+		void display_math() {
+			//показывать указатели?
+			bool showpntr=false;
+			bool tmp;
+			if(leaf==true) {
+				cout << value;
+			}
+			else if(b!=NULL) {
+				if((tmp=((b->leaf==false) && (b->leaf==false)))) {
+					if(showpntr==true) {
+						cout << " this: " << this << " a:" << a << " b:" << b <<  " (";
+					}
+					else {
+						cout << "(";
+					}
+				}
+				a->display_math();
+				if(tmp) {
+					cout << ")";
+				}
+				cout << value;
+				if(tmp) {
+					cout << "(";
+				}
+				b->display_math();
+				if(tmp) {
+					cout << ")";
+				}
+			}
+			else if(value=="exp") {
+				cout << "e^(";
+				a->display_math();
+				cout << ")";
+			}
+			else {
+				cout << value << "(";
+				a->display_math();
+				cout << ")";
+			}
+		}
+		void display_tree(int level=0) {
+			char* sym=":";
+			if(leaf==true) {
+				repeat(sym,level);
+				cout << value << endl;
+			}
+			else {
+				if(b==NULL) {
+					repeat(sym,level);
+					cout << value << endl;
+					a->display_tree(level+1);
+				}
+				else {
+					//repeat(sym,level);
+					a->display_tree(level+1);
+					//cout << endl;
+					repeat(sym,level);
+					cout <<	value << endl;
+					b->display_tree(level+1);
+				}
+			}
+		}
+		//Операция (если не лист)||значение (если лист)
 		char* value;
 		//лист это или нет
 		bool leaf;
 		//если не лист, то два указателя на другие деревья.
 		//если унарная операция, то используется только а
-		btree *a,*b;
+		tree *a,*b;
 	public:
 		//лист
-		btree(char* str): leaf(true),value(str) { }
+		tree(char* str): value(str),leaf(true) { }
 		//бинарная операция с деревьями
-		btree(btree *in_a,char* op,btree *in_b): leaf(false),a(in_a),b(in_b),value(op) { }
+		tree(tree *in_a,char* op,tree *in_b): value(op),leaf(false),a(in_a),b(in_b) { }
 		//унарная операция с деревом
-		btree(char *op,btree *in_): leaf(false),b(NULL),a(in_),value(op) {}
+		tree(char *op,tree *in_): value(op),leaf(false),a(in_),b(NULL) {}
 		//бинарная операция с листьями
-		btree(char* ina, char* op, char* inb): leaf(false),value(op) {
-			a=new btree(ina);
-			b=new btree(inb);
+		tree(char* ina, char* op, char* inb): value(op),leaf(false) {
+			a=new tree(ina);
+			b=new tree(inb);
 		}
 		//унарная операция с листом
-		btree(char* op,char* in_): leaf(false),value(op),b(NULL) {
-			a=new btree(in_);
+		tree(char* op,char* in_): value(op),leaf(false),b(NULL) {
+			a=new tree(in_);
 		}
-		btree(){}
+		tree(){}
 		//возвращает указатель на такое же, но другое дерево
-		btree* copymem() {
-			btree* nt;
+		tree* copymem() {
+			tree* nt;
 			if(leaf==true) {
-				nt=new btree(value);
+				nt=new tree(value);
 				
 			}
 			else {
 				if(b==NULL) {
-					nt=new btree(value,a->copymem());
+					nt=new tree(value,a->copymem());
 				}
 				else {
-					nt=new btree(a->copymem(),value,b->copymem());
+					nt=new tree(a->copymem(),value,b->copymem());
 				}
 			}
 			return(nt);
 		}
-		~btree() {
+		~tree() {
 			//почему-то не работает, а надо бы в операции присваивания
 			//чтобы не занимать память a и b, которые были у объекта до нее.
 			/*if(leaf==false) {
@@ -59,47 +124,47 @@ class btree {
 				delete *b;
 			}*/
 		}
-		btree* diff(char* base) {
-			btree* nt;
-			nt=new btree();
+		tree* diff(char* base) {
+			tree* nt;
+			nt=new tree();
 			if(leaf==true) {
 				if(*value==*base) {
-					nt=new btree("1");
+					nt=new tree("1");
 				}
 				else {
-					nt=new btree("0");
+					nt=new tree("0");
 				}
 			}
 			else {
 				if(b==NULL) {
 					if(value=="-") {
-						nt=new btree("-",a->diff(base));
+						nt=new tree("-",a->diff(base));
 					}
 					if(value=="sin") {
-						nt=new btree(new btree("-",new btree("cos",a)),"*",a->diff(base));
+						nt=new tree(new tree("-",new tree("cos",a)),"*",a->diff(base));
 					}
 					if(value=="exp") {
-						nt=new btree(new btree("exp",a),"*",a->diff(base));
+						nt=new tree(new tree("exp",a),"*",a->diff(base));
 					}
 					if(value=="cos") {
-						nt=new btree(new btree("sin",a),"*",a->diff(base));
+						nt=new tree(new tree("sin",a),"*",a->diff(base));
 					}
 					if(value=="sqrt") {
-						nt=new btree(new btree(new btree("1"),"/",new btree(new btree("2"),"*",new btree("sqrt",a))),"*",a->diff(base));
+						nt=new tree(new tree(new tree("1"),"/",new tree(new tree("2"),"*",new tree("sqrt",a))),"*",a->diff(base));
 					}
 				}
 				else {
 					if(value=="/") {
-						nt=new btree(new btree(new btree(a->diff(base),"*",b),"-",new btree(a,"*",b->diff(base))),"/",new btree(b,"**",new btree("2")));
+						nt=new tree(new tree(new tree(a->diff(base),"*",b),"-",new tree(a,"*",b->diff(base))),"/",new tree(b,"**",new tree("2")));
 					}
-					if(value=="+"|value=="-") {
-						nt=new btree(a->diff(base),value,b->diff(base));
+					if(value=="+"||value=="-") {
+						nt=new tree(a->diff(base),value,b->diff(base));
 					}
 					if(value=="*") {
-						nt=new btree(new btree(a,"*",b->diff(base)),"+",new btree(a->diff(base),"*",b));
+						nt=new tree(new tree(a,"*",b->diff(base)),"+",new tree(a->diff(base),"*",b));
 					}
-					if((value=="^")|(value=="**")) {
-						nt=new btree(b,"*",new btree(a,value,new btree(b,"-",new btree("1"))));
+					if((value=="^")||(value=="**")) {
+						nt=new tree(b,"*",new tree(a,value,new tree(b,"-",new tree("1"))));
 					}
 				}
 			}
@@ -108,13 +173,13 @@ class btree {
 		/*void operator=(float n){value=n;}
 		void operator=(char n){operation=n;}
 		void operator=(bool n){leaf=n;}*/
-		void seta(btree* aset){a=aset;}
-		void setb(btree* bset){b=bset;}
-//присваивает текущему дереву копию другого
-		void operator=(btree *src) {
+		void seta(tree* aset){a=aset;}
+		void setb(tree* bset){b=bset;}
+		//присваивает текущему дереву копию другого
+		void operator=(tree *src) {
 			/*delete *a;
 			delete *b;*/
-			btree *newtree;
+			tree *newtree;
 			newtree=src->copymem();
 			leaf=newtree->leaf;
 			value=newtree->value;
@@ -122,15 +187,15 @@ class btree {
 			a=newtree->a;
 			b=newtree->b;
 		}
-		btree* easy(int level=0) {
-			btree* nt;
+		tree* easy(int level=0) {
+			tree* nt;
 			if(leaf==false) {
 				if(b==NULL) {
-					nt=new btree(value,a->easy());
+					nt=new tree(value,a->easy());
 				}
 				else {
-					nt=new btree(a->easy(),value,b->easy());
-					if(value=="+"|value=="-") {
+					nt=new tree(a->easy(),value,b->easy());
+					if((value=="+")||(value=="-")) {
 						if((a->value)=="0") {
 							nt=b->easy();
 						}
@@ -139,8 +204,8 @@ class btree {
 						}
 					}
 					if(value=="*") {
-						if((a->leaf==true&(a->value)=="0")|(b->leaf==true&(b->value)=="0")) {
-							nt=new btree("0");
+						if((a->leaf==true&&(a->value)=="0")||(b->leaf==true&&(b->value)=="0")) {
+							nt=new tree("0");
 						}
 						if((a->value)=="1") {
 							nt=b->easy();
@@ -152,7 +217,7 @@ class btree {
 				}
 			}
 			else {
-				nt=new btree(value);
+				nt=new tree(value);
 			}
 			if(level<=1) {
 				return nt->easy(level+1);
@@ -161,84 +226,33 @@ class btree {
 				return nt;
 			}
 		}
-
-		void treeview(int level=0) {
-			char* sym=":";
-			//cout << "_";
-			if(leaf==true) {
-				repeat(sym,level);
-				cout << value << endl;
+		void display(int type=TREE_DDEFAULT) {
+			bool inrange=false;
+			if(type==TREE_DMATH) {
+				display_math();
+				inrange=true;
 			}
-			else {
-				if(b==NULL) {
-					repeat(sym,level);
-					cout << value << endl;
-					a->treeview(level+1);
-				}
-				else {
-					//repeat(sym,level);
-					a->treeview(level+1);
-					//cout << endl;
-					repeat(sym,level);
-					cout <<	value << endl;
-					b->treeview(level+1);
-				}
+			if(type==TREE_DTREE) {
+				display_tree();
+				inrange=true;
 			}
-		}
-		//показывает дерево и указатели
-		void display() {
-			//показывать указатели?
-			bool showpntr=false;
-			bool tmp;
-			if(leaf==true) {
-				cout << value;
-			}
-			else if(b!=NULL) {
-				if((tmp=((b->leaf==false) & (b->leaf==false)))) {
-					if(showpntr==true) {
-						cout << " this: " << this << " a:" << a << " b:" << b <<  " (";
-					}
-					else {
-						cout << "(";
-					}
-				}
-				//(a->easy())->display();
-				a->display();
-				if(tmp) {
-					cout << ")";
-				}
-				cout << value;
-				if(tmp) {
-					cout << "(";
-				}
-				//(b->easy())->display();
-				b->display();
-				if(tmp) {
-					cout << ")";
-				}
-			}
-			else if(value=="exp") {
-				cout << "e^(";
-				a->display();
-				cout << ")";
-			}
-			else {
-				cout << value << "(";
-				a->display();
-				cout << ")";
+			if(!inrange) {
+				display(TREE_DDEFAULT);
 			}
 		}
 };
 int main()
 {
-	btree btree2(new btree("exp",new btree("2","*","x")),"/",new btree("sin",new btree(new btree("2","*","x"),"+",new btree("6"))));
+//	tree tree2(new tree("exp",new tree("2","*","x")),"/",new tree("sin",new tree(new tree("2","*","x"),"+",new tree("6"))));
+	tree tree2("x");
 	cout << "Equal:" << endl;
-	btree2.treeview();
+	tree2.display();
 	cout << endl <<  "Easy equal:" << endl;
-	btree2.easy()->treeview();
+	tree2.easy()->display();
 	cout << endl <<	 "Diff:" << endl;
-	btree2.diff("x")->treeview();
+	tree2.diff("x")->display();
 	cout << endl << "Easy diff:" << endl;
-	(((btree2.easy())->diff("x"))->easy())->treeview();
+	(((tree2.easy())->diff("x"))->easy())->display();
+	cout << endl;
 	return 0;
 }
