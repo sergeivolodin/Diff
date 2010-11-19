@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <string.h>
 using namespace std;
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
@@ -262,6 +263,58 @@ class tree {
 			}
 		}
 };
+inline bool isnum(char sym) {
+	return(sym>='0'&&sym<='9');
+}
+inline bool islett(char sym) {
+	return((sym>='A'&&sym<='Z')||(sym>='a'&&sym<='z'));
+}
+int char_state(char in) {
+	if(isnum(in)) {
+		return(1);
+	}
+	if(islett(in)) {
+		return(2);
+	}
+	return(0);
+}
+char** lekser(char* str) {
+	int i=0;
+	int len=strlen(str);
+	int pos=1;
+	char* temp="";
+	char current;
+	int laststate=-1,currentstate;
+	char** result=new char*[100];
+	while(pos<=len) {
+		current=str[pos];
+		if(current=='('||current==')'||current=='+'||current=='-'||current=='*'||current=='/'||current=='^') {
+			result[i]=new char[0];
+			result[i][0]=current;
+			i++;
+		}
+		else if(isnum(current)||islett(current)) {
+			currentstate=char_state(current);
+			if(laststate==-1) {
+				temp=new char[0];
+				temp[0]=current;
+			}
+			else {
+				if(currentstate==laststate) {
+					temp+=current;
+				}
+				else {
+					result[i]=temp;
+					temp="";
+					i++;
+				}
+			}
+			laststate=currentstate;
+		}
+		pos++;
+	}
+	return(result);
+}
 int main()
 {
 //	tree tree2(new tree("exp",new tree("2","*","x")),"/",new tree("sin",new tree(new tree("2","*","x"),"+",new tree("6"))));
