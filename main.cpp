@@ -1,4 +1,6 @@
 #include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 #include <iomanip>
 #include <string.h>
 #include <strings.h>
@@ -175,7 +177,7 @@ class tree {
 		}
 		tree* diff(char* base) {
 			tree* nt;
-			nt=new tree();
+			nt=new tree("-");
 			if(leaf==true) {
 				if(str(value,base)) {
 					nt=new tree("1");
@@ -186,7 +188,6 @@ class tree {
 			}
 			else {
 				if(b==NULL) {
-					nt=new tree("function error");
 					if(str(value,"-")) {
 						nt=new tree("-",a->diff(base));
 					}
@@ -216,6 +217,9 @@ class tree {
 					}
 					if(str(value,"sqrt")) {
 						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree(new tree("2"),"*",new tree("sqrt",a))));
+					}
+					if(str(nt->value,"-")) {
+						cerr << "Unknown function" << endl;
 					}
 				}
 				else {
@@ -267,6 +271,13 @@ class tree {
 						if(str(nt->b->value,"0")) {
 							rt=nt->a->copymem();
 						}
+						if(nt->a->leaf&&nt->b->leaf) {
+							if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+								char* h=new char[100];
+								sprintf(h, "%f", atof(nt->a->value)+atof(nt->b->value));
+								rt=new tree(h);
+							}
+						}
 					}
 					if(str(value,"-")) {
 						//dont change order!
@@ -275,6 +286,11 @@ class tree {
 						}
 						if(str(nt->b->value,"0")) {
 							rt=nt->a->copymem();
+						}
+						if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+							char* h=new char[100];
+							sprintf(h, "%f", atof(nt->a->value)-atof(nt->b->value));
+							rt=new tree(h);
 						}
 					}
 					if(str(value,"*")) {
@@ -286,6 +302,11 @@ class tree {
 						}
 						if(str(nt->b->value,"1")) {
 							rt=nt->a;
+						}
+						if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+							char* h=new char[100];
+							sprintf(h, "%f", atof(nt->a->value)*atof(nt->b->value));
+							rt=new tree(h);
 						}
 					}
 				}
