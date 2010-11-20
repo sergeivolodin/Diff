@@ -328,7 +328,7 @@ lekser_answer lekser(char* str) {
 		current=str[pos];
 		currentstate=char_state(current);
 		if(currentstate==0) {
-			cout << "Wrong symbol at " << pos << endl;
+			cerr << "Wrong symbol at " << pos << endl;
 			res.max=-1;
 			return(res);
 		}
@@ -358,25 +358,40 @@ lekser_answer lekser(char* str) {
 	res.result=result;
 	return(res);
 }
-parser_answer parser(lekser_answer src,int pos=0) {
+parser_answer parser(lekser_answer src,int pos=0,int binary_a=-1) {
 	tree* rtree=NULL;
 	parser_answer result,tmpres,tmpres1;
 	result.pos=pos;
 	bool ok=false;
 	result.tr=NULL;
-	if(src.result[pos].t==CHAR_TBR1) {
+	//binary operations
+	cerr << "pos=" << pos << ", ba=" << binary_a << endl;
+	if(pos!=binary_a) {
+		tmpres=parser(src,pos,pos);
+		if(src.result[tmpres.pos].t==CHAR_TOP) {
+			tmpres1=parser(src,tmpres.pos+1);
+			if(pos!=binary_a) {
+				rtree=new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr);
+				result.pos=tmpres1.pos;
+				ok=true;
+			}
+		}
+	}
+	//brackets
+	if(src.result[pos].t==CHAR_TBR1&&!ok) {
 		ok=true;
 		tmpres=parser(src,pos+1);
-		if(src.result[tmpres.pos+1].t==CHAR_TBR2) {
-			result.pos=tmpres.pos+2;
+		if(src.result[tmpres.pos].t==CHAR_TBR2) {
+			result.pos=tmpres.pos+1;
 			rtree=tmpres.tr;
 		}
 		else {
-			cout << "Closing bracket not found" << endl;
+			cerr << "Closing bracket not found" << endl;
 			return(result);
 		}
 	}
-	if(src.result[pos].t==CHAR_TOP) {
+	//unary
+	if(src.result[pos].t==CHAR_TOP&&!ok) {
 		ok=true;
 		tmpres=parser(src,pos+1);
 		if(str(src.result[pos].c,"-")) {
@@ -384,24 +399,26 @@ parser_answer parser(lekser_answer src,int pos=0) {
 			result.pos=tmpres.pos;
 		}
 		else {
-			cout << "Unary \"" << src.result[pos].c << "\" not allowed" << endl;
+			cerr << pos << ": unary \"" << src.result[pos].c << "\" not allowed" << endl;
 			return(result);
 		}
 	}
-	if(src.result[pos].t==CHAR_TLETT) {
+	//functions
+	if(src.result[pos].t==CHAR_TLETT&&!ok) {
 		if(src.result[pos+1].t==CHAR_TBR1) {
 			ok=true;
 			tmpres=parser(src,pos+2);
-			//&&tmpres.tr!=NULL
-			if(src.result[tmpres.pos].t==CHAR_TBR2&&tmpres.tr!=NULL) {
+			result.pos=tmpres.pos;
+			if(src.result[tmpres.pos].t==CHAR_TBR2) {
 				rtree=new tree(src.result[pos].c,tmpres.tr);
 			}
 			else {
-				cout << "Function closing bracket not found at position " << tmpres.pos << endl;
+				cerr << tmpres.pos << ": function closing bracket expected, but '" << src.result[tmpres.pos-1].c << "' found." << endl;
 				return(result);
 			}
 		}
 	}
+	//atomic
 	if((src.result[pos].t==CHAR_TNUM||src.result[pos].t==CHAR_TLETT)&&!ok) {
 		ok=true;
 		result.pos=pos+1;
@@ -417,7 +434,7 @@ int main() {
 	parser_answer b;
 	b=parser(lekser(in));
 	if(b.tr==NULL) {
-		cout << "Wrong equal." << endl;
+		cerr << "Wrong equal." << endl;
 		main();
 	}
 	tree tree2=*b.tr;
