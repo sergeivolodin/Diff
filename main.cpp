@@ -2,8 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iomanip>
+#include <math.h>
 #include <string.h>
 #include <strings.h>
+/*
+ f(x)^g(x)=exp(ln(f(x))*g(x))
+ */
 using namespace std;
 bool str(char* a,char* b) {
 	return(strcmp(a,b)==0?true:false);
@@ -218,6 +222,9 @@ class tree {
 					if(str(value,"sqrt")) {
 						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree(new tree("2"),"*",new tree("sqrt",a))));
 					}
+					if(str(value,"erf")) {
+						nt=new tree(a->diff(base),"*",new tree(new tree(new tree("2"),"/",new tree("sqrt","pi")),"*",new tree("exp",new tree("-",new tree("x","^","2")))));
+					}
 					if(str(nt->value,"-")) {
 						cerr << "Unknown function" << endl;
 					}
@@ -264,11 +271,41 @@ class tree {
 				else {
 					nt=new tree(a->easy(),value,b->easy());
 					rt=nt;
+					if(str(value,"^")) {
+						if(nt->a->leaf&&nt->b->leaf) {
+							if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+								char* h=new char[100];
+								sprintf(h, "%f", pow(atof(nt->a->value),atof(nt->b->value)));
+								rt=new tree(h);
+							}
+						}
+					}
+					if(str(value,"/")) {
+						if(nt->a->leaf&&nt->b->leaf) {
+							if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+								if(((atoi(nt->a->value)*10) % atoi(nt->b->value))==0) {
+									char* h=new char[100];
+									sprintf(h, "%f", atof(nt->a->value)/atof(nt->b->value));
+									rt=new tree(h);
+								}
+							}
+						}
+						if(atof(nt->a->value)==0&&char_isnum(nt->a->value[0])) {
+							rt=new tree("0");
+						}
+						if(atof(nt->b->value)==0&&char_isnum(nt->b->value[0])) {
+							cerr << "Division by zero.";
+							rt=new tree("-");
+						}
+						if(atof(nt->b->value)==1&&char_isnum(nt->b->value[0])) {
+							rt=nt->a->copymem();
+						}
+					}
 					if(str(value,"+")) {
-						if(str(nt->a->value,"0")) {
+						if(atof(nt->a->value)==0&&char_isnum(nt->a->value[0])) {
 							rt=nt->b->copymem();
 						}
-						if(str(nt->b->value,"0")) {
+						if(atof(nt->b->value)==0&&char_isnum(nt->b->value[0])) {
 							rt=nt->a->copymem();
 						}
 						if(nt->a->leaf&&nt->b->leaf) {
@@ -281,10 +318,10 @@ class tree {
 					}
 					if(str(value,"-")) {
 						//dont change order!
-						if(str(nt->a->value,"0")) {
+						if(atof(nt->a->value)==0&&char_isnum(nt->a->value[0])) {
 							rt=new tree("-",nt->b);
 						}
-						if(str(nt->b->value,"0")) {
+						if(atof(nt->b->value)==0&&char_isnum(nt->b->value[0])) {
 							rt=nt->a->copymem();
 						}
 						if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
@@ -297,10 +334,10 @@ class tree {
 						if((nt->a->leaf==true&&str(nt->a->value,"0"))||(nt->b->leaf==true&&str(nt->b->value,"0"))) {
 							rt=new tree("0");
 						}
-						if(str(nt->a->value,"1")) {
+						if(atof(nt->a->value)==1&&char_isnum(nt->a->value[0])) {
 							rt=nt->b;
 						}
-						if(str(nt->b->value,"1")) {
+						if(atof(nt->b->value)==1&&char_isnum(nt->b->value[0])) {
 							rt=nt->a;
 						}
 						if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
