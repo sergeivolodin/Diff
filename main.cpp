@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string.h>
+#include <strings.h>
 using namespace std;
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
@@ -263,60 +264,79 @@ class tree {
 			}
 		}
 };
-inline bool isnum(char sym) {
-	return(sym>='0'&&sym<='9');
+inline bool char_isnum(char sym) {
+	return((sym>='0'&&sym<='9')||sym=='.');
 }
-inline bool islett(char sym) {
+inline bool char_islett(char sym) {
 	return((sym>='A'&&sym<='Z')||(sym>='a'&&sym<='z'));
 }
+inline bool char_isop(char current) {
+	return((current=='('||current==')'||current=='+'||current=='-'||current=='*'||current=='/'||current=='^'));
+}
 int char_state(char in) {
-	if(isnum(in)) {
+	if(char_isnum(in)) {
 		return(1);
 	}
-	if(islett(in)) {
+	if(char_islett(in)) {
 		return(2);
+	}
+	if(char_isop(in)) {
+		return(3);
+	}
+	if(in=='\0') {
+		return(4);
 	}
 	return(0);
 }
-char** lekser(char* str) {
+struct lekser_answer {
+	char** result;
+	int max;
+};
+lekser_answer lekser(char* str) {
 	int i=0;
 	int len=strlen(str);
-	int pos=1;
-	char* temp="";
+
+	int pos=0;
+	char* temp="",*a,*b;
 	char current;
 	int laststate=-1,currentstate;
 	char** result=new char*[100];
+	lekser_answer res;
 	while(pos<=len) {
 		current=str[pos];
-		if(current=='('||current==')'||current=='+'||current=='-'||current=='*'||current=='/'||current=='^') {
-			result[i]=new char[0];
-			result[i][0]=current;
-			i++;
+		currentstate=char_state(current);
+		if(currentstate==0) {
+			cout << "Wrong symbol at " << pos << endl;
+			res.max=-1;
+			return(res);
 		}
-		else if(isnum(current)||islett(current)) {
-			currentstate=char_state(current);
-			if(laststate==-1) {
+		else {
+			if((currentstate!=3)&&(laststate==currentstate)) {
+				strcpy(a,temp);
+				temp=new char[strlen(temp)+1];
+				b=new char[0];
+				b[0]=current;
+				temp=strcat(a,b);
+			}
+			else {
+				if(laststate!=-1) {
+					result[i]=new char[strlen(temp)+1];
+					strcpy(result[i],temp);
+					i++;
+				}
 				temp=new char[0];
 				temp[0]=current;
 			}
-			else {
-				if(currentstate==laststate) {
-					temp+=current;
-				}
-				else {
-					result[i]=temp;
-					temp="";
-					i++;
-				}
-			}
-			laststate=currentstate;
 		}
+		laststate=currentstate;
 		pos++;
 	}
-	return(result);
+	res.max=i-1;
+	res.result=result;
+	return(res);
 }
-int main()
-{
+int main() {
+	/*
 //	tree tree2(new tree("exp",new tree("2","*","x")),"/",new tree("sin",new tree(new tree("2","*","x"),"+",new tree("6"))));
 	tree tree2("tg",new tree("x","*","2"));
 	cout << "Equal:" << endl;
@@ -327,6 +347,18 @@ int main()
 	tree2.diff("x")->display();
 	cout << endl << "Easy diff:" << endl;
 	(((tree2.easy())->diff("x"))->easy())->display();
+	cout << endl;
+	return 0;
+	*/
+	char* in=new char[100];
+	cin >> in;
+	lekser_answer a;
+	a=lekser(in);
+	int i=0;
+	while(i<=a.max) {
+		cout << a.result[i] << "_";
+		i++;
+	}
 	cout << endl;
 	return 0;
 }
