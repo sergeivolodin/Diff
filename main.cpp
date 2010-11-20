@@ -352,21 +352,62 @@ lekser_answer lekser(char* str) {
 	res.result=result;
 	return(res);
 }
+struct parser_answer {
+	int pos;
+	tree* tr;
+};
+parser_answer parser(lekser_answer src,int pos=0) {
+	tree* rtree=NULL;
+	parser_answer result,tmpres,tmpres1;
+	result.pos=pos;
+	bool ok=false;
+	result.tr=NULL;
+	if(src.result[pos].t==CHAR_TBR1) {
+		ok=true;
+		tmpres=parser(src,pos+1);
+		if(src.result[pos+tmpres.pos].t==CHAR_TBR2) {
+			result.pos=tmpres.pos+1;
+			rtree=tmpres.tr;
+		}
+		else {
+			cout << "Closing bracket not found" << endl;
+			return(result);
+		}
+	}
+	if(src.result[pos].t==CHAR_TOP) {
+		ok=true;
+		tmpres=parser(src,pos+1);
+		if(src.result[pos].c!="-\0") {
+			rtree=new tree("-",tmpres.tr);
+			result.pos=tmpres.pos;
+		}
+		else {
+			cout << "Unary \"" << src.result[pos].c << "\"" << endl;
+			return(result);
+		}
+	}
+	if(src.result[pos].t==CHAR_TLETT) {
+		if(src.result[pos+1].t==CHAR_TBR1) {
+			ok=true;
+			tmpres=parser(src,pos+2);
+			if(src.result[tmpres.pos+1].t==CHAR_TBR2&&tmpres.tr!=NULL) {
+				rtree=new tree(src.result[pos].c,tmpres.tr);
+			}
+			else {
+				cout << "Function closing bracket not found" << endl;
+				return(result);
+			}
+		}
+	}
+	if((src.result[pos].t==CHAR_TNUM||src.result[pos].t==CHAR_TLETT)&&!ok) {
+		ok=true;
+		result.pos=pos+1;
+		rtree=new tree(src.result[pos].c);
+	}
+	result.tr=rtree;
+	return(result);
+}
 int main() {
-	/*
-//	tree tree2(new tree("exp",new tree("2","*","x")),"/",new tree("sin",new tree(new tree("2","*","x"),"+",new tree("6"))));
-	tree tree2("tg",new tree("x","*","2"));
-	cout << "Equal:" << endl;
-	tree2.display();
-	cout << endl <<  "Easy equal:" << endl;
-	tree2.easy()->display();
-	cout << endl <<	 "Diff:" << endl;
-	tree2.diff("x")->display();
-	cout << endl << "Easy diff:" << endl;
-	(((tree2.easy())->diff("x"))->easy())->display();
-	cout << endl;
-	return 0;
-	*/
 	char* in=new char[100];
 	cin >> in;
 	lekser_answer a;
@@ -376,5 +417,17 @@ int main() {
 		cout << a.result[i].c << ":" <<	a.result[i].t << endl;
 		i++;
 	}
+	parser_answer b;
+	b=parser(a);
+	tree tree2=*b.tr;
+	cout << "Equal:" << endl;
+	tree2.display();
+	cout << endl <<  "Easy equal:" << endl;
+	tree2.easy()->display();
+	cout << endl <<	 "Diff:" << endl;
+	tree2.diff("x")->display();
+	cout << endl << "Easy diff:" << endl;
+	(((tree2.easy())->diff("x"))->easy())->display();
+	cout << endl;
 	return 0;
 }
