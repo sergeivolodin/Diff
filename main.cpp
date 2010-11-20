@@ -271,25 +271,41 @@ inline bool char_islett(char sym) {
 	return((sym>='A'&&sym<='Z')||(sym>='a'&&sym<='z'));
 }
 inline bool char_isop(char current) {
-	return((current=='('||current==')'||current=='+'||current=='-'||current=='*'||current=='/'||current=='^'));
+	return((current=='+'||current=='-'||current=='*'||current=='/'||current=='^'));
 }
+const int CHAR_TNUM=1; //numbers: 0-9.
+const int CHAR_TLETT=2; //letters a-zA-Z
+const int CHAR_TOP=3; //operations: +-*/^
+const int CHAR_TEND=4; //end of string
+const int CHAR_TBR1=5; //opening bracket
+const int CHAR_TBR2=6; //closing bracket
 int char_state(char in) {
 	if(char_isnum(in)) {
-		return(1);
+		return(CHAR_TNUM);
 	}
 	if(char_islett(in)) {
-		return(2);
+		return(CHAR_TLETT);
 	}
 	if(char_isop(in)) {
-		return(3);
+		return(CHAR_TOP);
+	}
+	if(in==')') {
+		return(CHAR_TBR2);
+	}
+	if(in=='(') {
+		return(CHAR_TBR1);
 	}
 	if(in=='\0') {
-		return(4);
+		return(CHAR_TEND);
 	}
 	return(0);
 }
+struct token {
+	char* c; //content
+	int t; //type
+};
 struct lekser_answer {
-	char** result;
+	token* result;
 	int max;
 };
 lekser_answer lekser(char* str) {
@@ -300,7 +316,7 @@ lekser_answer lekser(char* str) {
 	char* temp="",*a,*b;
 	char current;
 	int laststate=-1,currentstate;
-	char** result=new char*[100];
+	token* result=new token[len]; //char count more than tokens count.
 	lekser_answer res;
 	while(pos<=len) {
 		current=str[pos];
@@ -311,7 +327,7 @@ lekser_answer lekser(char* str) {
 			return(res);
 		}
 		else {
-			if((currentstate!=3)&&(laststate==currentstate)) {
+			if((currentstate!=CHAR_TBR2)&&(currentstate!=CHAR_TBR1)&&(currentstate!=CHAR_TOP)&&(laststate==currentstate)) {
 				strcpy(a,temp);
 				temp=new char[strlen(temp)+1];
 				b=new char[0];
@@ -320,8 +336,9 @@ lekser_answer lekser(char* str) {
 			}
 			else {
 				if(laststate!=-1) {
-					result[i]=new char[strlen(temp)+1];
-					strcpy(result[i],temp);
+					result[i].c=new char[strlen(temp)+1];
+					result[i].t=laststate;
+					strcpy(result[i].c,temp);
 					i++;
 				}
 				temp=new char[0];
@@ -356,9 +373,8 @@ int main() {
 	a=lekser(in);
 	int i=0;
 	while(i<=a.max) {
-		cout << a.result[i] << "_";
+		cout << a.result[i].c << ":" <<	a.result[i].t << endl;
 		i++;
 	}
-	cout << endl;
 	return 0;
 }
