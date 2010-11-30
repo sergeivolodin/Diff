@@ -52,7 +52,7 @@ struct token {
 	char* c; //content
 	int t; //type
 };
-struct lekser_answer {
+struct lexer_answer {
 	token* result;
 	int max;
 };
@@ -372,7 +372,7 @@ struct parser_answer {
 	int pos;
 	tree* tr;
 };
-lekser_answer lekser(char* str) {
+lexer_answer lexer(char* str) {
 	int i=0;
 	int len=strlen(str);
 
@@ -381,10 +381,16 @@ lekser_answer lekser(char* str) {
 	char current;
 	int laststate=-1,currentstate;
 	token* result=new token[len]; //char count more than tokens count.
-	lekser_answer res;
+	lexer_answer res;
 	while(pos<=len) {
-		current=str[pos];
-		currentstate=char_state(current);
+		if(len==pos) {
+			current='\0';
+			currentstate=10;
+		}
+		else {
+			current=str[pos];
+			currentstate=char_state(current);
+		}
 		if(currentstate==0) {
 			cerr << "Wrong symbol at " << pos << endl;
 			res.max=-1;
@@ -413,17 +419,18 @@ lekser_answer lekser(char* str) {
 		pos++;
 	}
 	res.max=i-1;
+	//cerr << "lexer ok";
 	res.result=result;
 	return(res);
 }
-parser_answer parser(lekser_answer src,int pos=0,int binary_a=-1) {
+parser_answer parser(lexer_answer src,int pos=0,int binary_a=-1) {
 	tree* rtree=NULL;
 	parser_answer result,tmpres,tmpres1;
 	result.pos=pos;
 	bool ok=false;
 	result.tr=NULL;
 	//binary operations
-	cerr << "pos=" << pos << ", ba=" << binary_a << endl;
+	//cerr << "pos=" << pos << ", ba=" << binary_a << endl;
 	if(pos!=binary_a) {
 		tmpres=parser(src,pos,pos);
 		if(src.result[tmpres.pos].t==CHAR_TOP) {
@@ -466,7 +473,8 @@ parser_answer parser(lekser_answer src,int pos=0,int binary_a=-1) {
 		if(src.result[pos+1].t==CHAR_TBR1) {
 			ok=true;
 			tmpres=parser(src,pos+2);
-			result.pos=tmpres.pos;
+			result.pos=tmpres.pos+1;
+			//cerr << "Function parse called, new position is " << result.pos << " (it contents [" << src.result[tmpres.pos+1].c  << "])" << endl;
 			if(src.result[tmpres.pos].t==CHAR_TBR2) {
 				rtree=new tree(src.result[pos].c,tmpres.tr);
 			}
@@ -486,14 +494,16 @@ parser_answer parser(lekser_answer src,int pos=0,int binary_a=-1) {
 	return(result);
 }
 int main() {
-	char* in=new char[100];
+	char* in=new char[10000];
+	//char* in="sin(x/cos(x*tg(10*x^(cos(exp(x))))))";
 	cout << "Enter equal: ";
 	cin >> in;
+	//cerr << strlen(in);
 	parser_answer b;
-	b=parser(lekser(in));
+	b=parser(lexer(in));
 	if(b.tr==NULL) {
 		cerr << "Wrong equal." << endl;
-		main();
+	//	main();
 	}
 	tree tree2=*b.tr;
 	cout << "Equal:" << endl;
@@ -505,5 +515,5 @@ int main() {
 	cout << endl << "Easy diff:" << endl;
 	(((tree2.easy())->diff("x"))->easy())->display();
 	cout << endl << "==================" << endl;
-	main();
+//	main();
 }
