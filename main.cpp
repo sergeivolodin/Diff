@@ -10,7 +10,7 @@
  */
 using namespace std;
 bool str(char* a,char* b) {
-	return(strcmp(a,b)==0?true:false);
+	return(strcmp(a,b)==0);
 }
 inline bool char_isnum(char sym) {
 	return((sym>='0'&&sym<='9')||sym=='.');
@@ -19,7 +19,7 @@ inline bool char_islett(char sym) {
 	return((sym>='A'&&sym<='Z')||(sym>='a'&&sym<='z'));
 }
 inline bool char_isop(char current) {
-	return((current=='+'||current=='-'||current=='*'||current=='/'||current=='^'));
+	return((current=='_'||current=='+'||current=='-'||current=='*'||current=='/'||current=='^'));
 }
 const int CHAR_TNUM=1; //numbers: 0-9.
 const int CHAR_TLETT=2; //letters a-zA-Z
@@ -59,10 +59,15 @@ struct lexer_answer {
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
 const int TREE_DDEFAULT=TREE_DMATH;
-void repeat(char* str,int count=1) {
+void repeat(char* str,int count=1,bool tcerr=false) {
 	int i=1;
 	while(i<=count) {
-		cout << str;
+		if(tcerr) {
+			cerr << str;
+		}
+		else {
+			cout << str;
+		}
 		i++;
 	}
 }
@@ -70,27 +75,20 @@ void repeat(char* str,int count=1) {
 class tree {
 	private:
 		void display_math() {
-			//display pointers?
-			bool showpntr=false;
 			bool tmp;
 			if(leaf==true) {
 				cout << value;
 			}
 			else if(b!=NULL) {
-				if((tmp=((b->leaf==false) && (b->leaf==false)))) {
-					if(showpntr==true) {
-						cout << " this: " << this << " a:" << a << " b:" << b <<  " (";
-					}
-					else {
-						cout << "(";
-					}
+				if(tmp=(!a->leaf)) {
+					cout << "(";
 				}
 				a->display_math();
 				if(tmp) {
 					cout << ")";
 				}
 				cout << value;
-				if(tmp) {
+				if(tmp=(!b->leaf)) {
 					cout << "(";
 				}
 				b->display_math();
@@ -181,7 +179,7 @@ class tree {
 		}
 		tree* diff(char* base) {
 			tree* nt;
-			nt=new tree("-");
+			nt=new tree("???");
 			if(leaf==true) {
 				if(str(value,base)) {
 					nt=new tree("1");
@@ -225,7 +223,7 @@ class tree {
 					if(str(value,"erf")) {
 						nt=new tree(a->diff(base),"*",new tree(new tree(new tree("2"),"/",new tree("sqrt","pi")),"*",new tree("exp",new tree("-",new tree("x","^","2")))));
 					}
-					if(str(nt->value,"-")) {
+					if(str(nt->value,"???")) {
 						cerr << "Unknown function" << endl;
 					}
 				}
@@ -266,7 +264,13 @@ class tree {
 			tree *nt,*rt;
 			if(leaf==false) {
 				if(b==NULL) {
-					rt=new tree(value,a->easy());
+					nt=a->easy();
+					if(str(value,"-")) {
+						rt=new tree(new tree("0"),value,nt);
+					}
+					else {
+						rt=new tree(value,nt);
+					}
 				}
 				else {
 					nt=new tree(a->easy(),value,b->easy());
@@ -370,6 +374,7 @@ class tree {
 };
 struct parser_answer {
 	int pos;
+	int state;
 	tree* tr;
 };
 lexer_answer lexer(char* str) {
@@ -406,6 +411,9 @@ lexer_answer lexer(char* str) {
 			}
 			else {
 				if(laststate!=-1) {
+					if(current=='_') {
+						current='^';
+					}
 					result[i].c=new char[strlen(temp)+1];
 					result[i].t=laststate;
 					strcpy(result[i].c,temp);
@@ -419,18 +427,88 @@ lexer_answer lexer(char* str) {
 		pos++;
 	}
 	res.max=i-1;
-	//cerr << "lexer ok";
 	res.result=result;
 	return(res);
 }
+int op_prio(char* a) {
+	if(a[0]=='+'||a[0]=='-') {
+		return(1);
+	}
+	if(a[0]=='*'||a[0]=='/') {
+		return(2);
+	}
+	if(a[0]=='^') {
+		return(3);
+	}
+	cerr << "unexpected operator [" << a << "]" << endl;
+	//its prio is smaller
+	return(-1);
+}
+//parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int prev_binary=-2,int level=0) {
 parser_answer parser(lexer_answer src,int pos=0,int binary_a=-1) {
 	tree* rtree=NULL;
-	parser_answer result,tmpres,tmpres1;
+	parser_answer result,tmpres,tmpres1,tmpres2;
 	result.pos=pos;
 	bool ok=false;
 	result.tr=NULL;
+	result.state=0; //1 for 
+	char* sym=" ";
 	//binary operations
-	//cerr << "pos=" << pos << ", ba=" << binary_a << endl;
+	/*cerr << endl;
+	repeat(sym,level,true);
+	cerr << pos << "[" << src.result[pos].c << "]: ";
+	if(binary) {
+		cerr << "b+ ";
+		//parse first operand which excludes binary operations (but brackets allowed)
+		tmpres=parser(src,pos,false,-2,level+1);
+		//if next sym is operation
+		if(src.result[tmpres.pos].t==CHAR_TOP) {
+			//(for recursion) if prev. operation's prio is smaller than current, 
+			//tmpres.pos - operator
+			if(prev_binary==-2) {
+				repeat(sym,level,true);
+				cerr << "prev: clean ";
+			}
+			if(op_prio(src.result[tmpres.pos].c)>prev_binary) {
+				if(prev_binary!=-2) {
+					repeat(sym,level,true);
+					cerr << "prev: smaller ";
+				}
+				tmpres1=parser(src,tmpres.pos+1,true,op_prio(src.result[tmpres.pos].c),level+1);
+				//if inner exits 'cause my prio is bigger
+				if(tmpres1.state==1) {
+					if(src.result[tmpres1.pos].t==CHAR_TOP) {
+						tmpres2=parser(src,tmpres1.pos+1,true,-2,level+1);
+						rtree=new tree(new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr),src.result[tmpres1.pos].c,tmpres2.tr);
+						ok=true;
+						result.pos=tmpres2.pos;
+					}
+				}
+				else {
+					rtree=new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr);
+					result.pos=tmpres1.pos;
+					ok=true;
+				}
+			}
+			else {
+				repeat(sym,level,true);
+				cerr << "prev: bigger";
+				//returns only one
+				//5*3+7
+				//  ^
+				tmpres1=parser(src,pos,false,-2,level+1);
+				rtree=tmpres1.tr;
+				result.pos=tmpres1.pos;
+				ok=true;
+				result.state=1;
+			}
+		}
+	}
+	else {
+		cerr << "b- ";
+	}
+	cerr << endl;
+	ok=false;*/
 	if(pos!=binary_a) {
 		tmpres=parser(src,pos,pos);
 		if(src.result[tmpres.pos].t==CHAR_TOP) {
@@ -474,8 +552,8 @@ parser_answer parser(lexer_answer src,int pos=0,int binary_a=-1) {
 			ok=true;
 			tmpres=parser(src,pos+2);
 			result.pos=tmpres.pos+1;
-			//cerr << "Function parse called, new position is " << result.pos << " (it contents [" << src.result[tmpres.pos+1].c  << "])" << endl;
 			if(src.result[tmpres.pos].t==CHAR_TBR2) {
+				//cerr << "Function parse called, new position is " << result.pos << " (it contents [" << src.result[tmpres.pos+1].c  << "])" << endl;
 				rtree=new tree(src.result[pos].c,tmpres.tr);
 			}
 			else {
@@ -513,7 +591,7 @@ int main() {
 	cout << endl <<	 "Diff:" << endl;
 	(tree2.easy())->diff("x")->display();
 	cout << endl << "Easy diff:" << endl;
-	(((tree2.easy())->diff("x"))->easy())->display();
+	(((tree2.easy())->diff("x"))->easy())->easy()->display();
 	cout << endl << "==================" << endl;
 //	main();
 }
