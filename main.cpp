@@ -96,11 +96,11 @@ class tree {
 					cout << ")";
 				}
 			}
-			else if(str(value,"exp")) {
+			/*else if(str(value,"exp")) {
 				cout << "e^(";
 				a->display_math();
 				cout << ")";
-			}
+			}*/
 			else {
 				cout << value << "(";
 				a->display_math();
@@ -197,7 +197,10 @@ class tree {
 						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",a));
 					}
 					if(str(value,"sin")) {
-						nt=new tree(a->diff(base),"*",new tree("-",new tree("cos",a)));
+						nt=new tree(a->diff(base),"*",new tree("cos",a));
+					}
+					if(str(value,"cos")) {
+						nt=new tree(a->diff(base),"*",new tree("-",new tree("sin",a)));
 					}
 					if(str(value,"arcsin")) {
 						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree("sqrt",new tree(new tree("1"),"-",new tree(a,"^",new tree("2"))))));
@@ -213,9 +216,6 @@ class tree {
 					}
 					if(str(value,"exp")) {
 						nt=new tree(a->diff(base),"*",new tree("exp",a));
-					}
-					if(str(value,"cos")) {
-						nt=new tree(a->diff(base),"*",new tree("sin",a));
 					}
 					if(str(value,"sqrt")) {
 						nt=new tree(a->diff(base),"*",new tree(new tree("1"),"/",new tree(new tree("2"),"*",new tree("sqrt",a))));
@@ -238,7 +238,11 @@ class tree {
 						nt=new tree(new tree(a,"*",b->diff(base)),"+",new tree(a->diff(base),"*",b));
 					}
 					if(str(value,"^")) {
-						nt=new tree(b,"*",new tree(a,value,new tree(b,"-",new tree("1"))));
+						//nt=new tree(b,"*",new tree(a,value,new tree(b,"-",new tree("1"))));
+						//f(x)^g(x)=exp(ln(f(x))*g(x))
+						tree* tmp;
+						tmp=new tree("exp",new tree(new tree("ln",a),"*",b));
+						nt=tmp->diff(base);
 					}
 				}
 			}
@@ -293,7 +297,10 @@ class tree {
 					if(str(value,"/")) {
 						if(nt->a->leaf&&nt->b->leaf) {
 							if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
-								if(((atoi(nt->a->value)*10) % atoi(nt->b->value))==0) {
+								if(atoi(nt->b->value)==0) {
+									cout << "Division by zero." << endl;
+								}
+								else if(((atoi(nt->a->value)*10) % atoi(nt->b->value))==0) {
 									char* h=new char[100];
 									sprintf(h, "%f", atof(nt->a->value)/atof(nt->b->value));
 									rt=new tree(h);
@@ -304,7 +311,7 @@ class tree {
 							rt=new tree("0");
 						}
 						if(atof(nt->b->value)==0&&char_isnum(nt->b->value[0])) {
-							cerr << "Division by zero.";
+							cout << "Division by zero.";
 							rt=new tree("-");
 						}
 						if(atof(nt->b->value)==1&&char_isnum(nt->b->value[0])) {
