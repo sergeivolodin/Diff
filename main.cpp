@@ -283,6 +283,11 @@ class tree {
 								rt=new tree(h);
 							}
 						}
+						if(nt->b->leaf) {
+							if(atof(nt->b->value)==1) {
+								rt=nt->a;
+							}
+						}
 					}
 					if(str(value,"/")) {
 						if(nt->a->leaf&&nt->b->leaf) {
@@ -374,7 +379,6 @@ class tree {
 };
 struct parser_answer {
 	int pos;
-	int state;
 	tree* tr;
 };
 lexer_answer lexer(char* str) {
@@ -442,81 +446,34 @@ int op_prio(char* a) {
 	}
 	cerr << "unexpected operator [" << a << "]" << endl;
 	//its prio is smaller
-	return(-1);
+	return(0);
 }
-//parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int prev_binary=-2,int level=0) {
-parser_answer parser(lexer_answer src,int pos=0,int binary_a=-1) {
-	tree* rtree=NULL;
+parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
+	tree* rtree=NULL,*rtree1;
 	parser_answer result,tmpres,tmpres1,tmpres2;
 	result.pos=pos;
 	bool ok=false;
 	result.tr=NULL;
-	result.state=0; //1 for 
-	char* sym=" ";
-	//binary operations
-	/*cerr << endl;
-	repeat(sym,level,true);
-	cerr << pos << "[" << src.result[pos].c << "]: ";
 	if(binary) {
-		cerr << "b+ ";
-		//parse first operand which excludes binary operations (but brackets allowed)
-		tmpres=parser(src,pos,false,-2,level+1);
-		//if next sym is operation
+		//first operand
+		tmpres=parser(src,pos,false);
 		if(src.result[tmpres.pos].t==CHAR_TOP) {
-			//(for recursion) if prev. operation's prio is smaller than current, 
-			//tmpres.pos - operator
-			if(prev_binary==-2) {
-				repeat(sym,level,true);
-				cerr << "prev: clean ";
-			}
-			if(op_prio(src.result[tmpres.pos].c)>prev_binary) {
-				if(prev_binary!=-2) {
-					repeat(sym,level,true);
-					cerr << "prev: smaller ";
-				}
-				tmpres1=parser(src,tmpres.pos+1,true,op_prio(src.result[tmpres.pos].c),level+1);
-				//if inner exits 'cause my prio is bigger
-				if(tmpres1.state==1) {
-					if(src.result[tmpres1.pos].t==CHAR_TOP) {
-						tmpres2=parser(src,tmpres1.pos+1,true,-2,level+1);
-						rtree=new tree(new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr),src.result[tmpres1.pos].c,tmpres2.tr);
-						ok=true;
-						result.pos=tmpres2.pos;
-					}
+			//its binary
+			if(op_prio(src.result[tmpres.pos].c)>=parent_prio) {
+				//if current prio is bigger than parent prio
+				tmpres1=parser(src,tmpres.pos+1,true,op_prio(src.result[tmpres.pos].c),false);
+				if((src.result[tmpres1.pos].t==CHAR_TOP)&&sub_allow) {
+					//if second operand is not all string
+					tmpres2=parser(src,tmpres1.pos+1,true);
+					rtree=new tree(new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr),src.result[tmpres1.pos].c,tmpres2.tr);
+					result.pos=tmpres2.pos;
+					ok=true;
 				}
 				else {
 					rtree=new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr);
 					result.pos=tmpres1.pos;
 					ok=true;
 				}
-			}
-			else {
-				repeat(sym,level,true);
-				cerr << "prev: bigger";
-				//returns only one
-				//5*3+7
-				//  ^
-				tmpres1=parser(src,pos,false,-2,level+1);
-				rtree=tmpres1.tr;
-				result.pos=tmpres1.pos;
-				ok=true;
-				result.state=1;
-			}
-		}
-	}
-	else {
-		cerr << "b- ";
-	}
-	cerr << endl;
-	ok=false;*/
-	if(pos!=binary_a) {
-		tmpres=parser(src,pos,pos);
-		if(src.result[tmpres.pos].t==CHAR_TOP) {
-			tmpres1=parser(src,tmpres.pos+1);
-			if(pos!=binary_a) {
-				rtree=new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr);
-				result.pos=tmpres1.pos;
-				ok=true;
 			}
 		}
 	}
@@ -591,7 +548,7 @@ int main() {
 	cout << endl <<	 "Diff:" << endl;
 	(tree2.easy())->diff("x")->display();
 	cout << endl << "Easy diff:" << endl;
-	(((tree2.easy())->diff("x"))->easy())->easy()->display();
+	(((tree2.easy())->diff("x"))->easy())->display();
 	cout << endl << "==================" << endl;
 //	main();
 }
