@@ -266,7 +266,8 @@ class tree {
 				if(b==NULL) {
 					nt=a->easy();
 					if(str(value,"-")) {
-						rt=new tree(new tree("0"),value,nt);
+						rt=new tree("-",nt);
+						//rt=new tree(new tree("0"),value,nt);
 					}
 					else {
 						rt=new tree(value,nt);
@@ -463,7 +464,7 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 				//if current prio is bigger than parent prio
 				tmpres1=parser(src,tmpres.pos+1,true,op_prio(src.result[tmpres.pos].c),false);
 				if((src.result[tmpres1.pos].t==CHAR_TOP)&&sub_allow) {
-					//if second operand is not all string
+					//if sub_recursion allowed AND next sym is operation
 					tmpres2=parser(src,tmpres1.pos+1,true);
 					rtree=new tree(new tree(tmpres.tr,src.result[tmpres.pos].c,tmpres1.tr),src.result[tmpres1.pos].c,tmpres2.tr);
 					result.pos=tmpres2.pos;
@@ -528,19 +529,17 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 	result.tr=rtree;
 	return(result);
 }
-int main() {
-	char* in=new char[10000];
-	//char* in="sin(x/cos(x*tg(10*x^(cos(exp(x))))))";
+int main(int argc, char *argv[]) {
+	char* in=new char[1000];
 	cout << "Enter equal: ";
 	cin >> in;
-	//cerr << strlen(in);
-	parser_answer b;
-	b=parser(lexer(in));
+	parser_answer b=parser(lexer(in));
+	tree tree2;
 	if(b.tr==NULL) {
-		cerr << "Wrong equal." << endl;
-	//	main();
+			cerr << "Wrong equal." << endl;
+			return 1;
 	}
-	tree tree2=*b.tr;
+	tree2=*b.tr;
 	cout << "Equal:" << endl;
 	tree2.display();
 	cout << endl <<  "Easy equal:" << endl;
@@ -550,5 +549,5 @@ int main() {
 	cout << endl << "Easy diff:" << endl;
 	(((tree2.easy())->diff("x"))->easy())->display();
 	cout << endl << "==================" << endl;
-//	main();
+	return 0;
 }
