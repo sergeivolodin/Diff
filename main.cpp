@@ -59,75 +59,79 @@ struct lexer_answer {
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
 const int TREE_DDEFAULT=TREE_DMATH;
-void repeat(char* str,int count=1,bool tcerr=false) {
+char* stradd(char* src,char* add) {
+	char* src_=new char[strlen(src)+strlen(add)-1];
+	strcpy(src_,src);
+	strcat(src_,add);
+}
+char* repeat(char* str,int count=1) {
 	int i=1;
+	char* res="";
 	while(i<=count) {
-		if(tcerr) {
-			cerr << str;
-		}
-		else {
-			cout << str;
-		}
+		res=stradd(res,str);
 		i++;
 	}
+	return(res);
 }
-
 class tree {
 	private:
-		void display_math() {
+		char* display_math() {
 			bool tmp;
+			char* res;
 			if(leaf==true) {
-				cout << value;
+				res=value;
 			}
 			else if(b!=NULL) {
+				res="";
 				if(tmp=(!a->leaf)) {
-					cout << "(";
+					res=stradd(res,"(");
 				}
-				a->display_math();
+				res=stradd(res,a->display_math());
 				if(tmp) {
-					cout << ")";
+					res=stradd(res,")");
 				}
-				cout << value;
+				res=stradd(res,value);
 				if(tmp=(!b->leaf)) {
-					cout << "(";
+					res=stradd(res,"(");
 				}
-				b->display_math();
+				res=stradd(res,b->display_math());
 				if(tmp) {
-					cout << ")";
+					res=stradd(res,")");
 				}
 			}
-			/*else if(str(value,"exp")) {
-				cout << "e^(";
-				a->display_math();
-				cout << ")";
-			}*/
 			else {
-				cout << value << "(";
-				a->display_math();
-				cout << ")";
+				res=value;
+				res=stradd(res,"(");
+				res=stradd(res,a->display_math());
+				res=stradd(res,")");
 			}
+			return(res);
 		}
-		void display_tree(int level=0) {
+		char* display_tree(int level=0) {
 			char* sym=":";
+			char* res;
+			char* nl=new char[0];
+			nl[0]=10;
 			if(leaf==true) {
-				repeat(sym,level);
-				cout << value << endl;
+				res=repeat(sym,level);
+				res=stradd(res,stradd(value,nl));
 			}
 			else {
 				if(b==NULL) {
-					repeat(sym,level);
-					cout << value << endl;
-					a->display_tree(level+1);
+					res=repeat(sym,level);
+					res=stradd(res,stradd(value,nl));
+					res=stradd(res,a->display_tree(level+1));
 				}
 				else {
 					//repeat(sym,level);
-					a->display_tree(level+1);
+					res=a->display_tree(level+1);
 					//cout << endl;
-					repeat(sym,level);
-					cout <<	value << endl;
-					b->display_tree(level+1);
+					res=stradd(res,repeat(sym,level));
+					res=stradd(res,stradd(value,nl));
+					res=stradd(res,b->display_tree(level+1));
 				}
 			}
+			return(res);
 		}
 		//Operation/value
 		char* value;
@@ -370,19 +374,14 @@ class tree {
 			}
 			return rt;
 		}
-		void display(int type=TREE_DDEFAULT) {
-			bool inrange=false;
+		char* display(int type=TREE_DDEFAULT) {
 			if(type==TREE_DMATH) {
-				display_math();
-				inrange=true;
+				return(display_math());
 			}
 			if(type==TREE_DTREE) {
-				display_tree();
-				inrange=true;
+				return(display_tree());
 			}
-			if(!inrange) {
-				display(TREE_DDEFAULT);
-			}
+			return(display(TREE_DDEFAULT));
 		}
 };
 struct parser_answer {
@@ -548,13 +547,13 @@ int main(int argc, char *argv[]) {
 	}
 	tree2=*b.tr;
 	cout << "Equal:" << endl;
-	tree2.display();
+	cout << tree2.display();
 	cout << endl <<  "Easy equal:" << endl;
-	tree2.easy()->display();
+	cout << tree2.easy()->display();
 	cout << endl <<	 "Diff:" << endl;
-	(tree2.easy())->diff("x")->display();
+	cout << (tree2.easy())->diff("x")->display();
 	cout << endl << "Easy diff:" << endl;
-	(((tree2.easy())->diff("x"))->easy())->display();
+	cout << (((tree2.easy())->diff("x"))->easy())->display();
 	cout << endl << "==================" << endl;
 	return 0;
 }
