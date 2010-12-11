@@ -312,6 +312,19 @@ class tree {
 			a=newtree->a;
 			b=newtree->b;
 		}
+		unsigned int size() {
+			if(leaf) {
+				return(0);
+			}
+			else {
+				if(b==NULL) {
+					return(a->size()+1);
+				}
+				else {
+					return(a->size()+b->size()+1);
+				}
+			}
+		}
 		tree* easy() {
 			tree *nt,*rt;
 			if(leaf==false) {
@@ -392,7 +405,7 @@ class tree {
 						}
 					}
 					if(str(value,"*")) {
-						if((nt->a->leaf==true&&str(nt->a->value,"0"))||(nt->b->leaf==true&&str(nt->b->value,"0"))) {
+						if((nt->a->leaf&&str(nt->a->value,"0"))||(nt->b->leaf&&str(nt->b->value,"0"))) {
 							rt=new tree("0");
 						}
 						if(atof(nt->a->value)==1&&char_isnum(nt->a->value[0])) {
