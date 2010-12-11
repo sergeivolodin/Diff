@@ -577,12 +577,22 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 	result.tr=rtree;
 	return(result);
 }
+char* easy(char* src) {
+	parser_answer b;
+	tree tree2;
+	b=parser(lexer(strn(src)));
+	if(b.tr==NULL) {
+		return(NULL);
+	}
+	tree2=*b.tr;
+	return(tree2.easy()->display());
+}
 char* diff(char* src) {
 	parser_answer b;
 	tree tree2;
 	b=parser(lexer(strn(src)));
 	if(b.tr==NULL) {
-			return(NULL);
+		return(NULL);
 	}
 	tree2=*b.tr;
 	/*cout << "Equal:" << endl;
@@ -594,9 +604,37 @@ char* diff(char* src) {
 	cout << endl << "Easy diff:" << endl;*/
 	return((((tree2.easy())->diff("x"))->easy())->display());
 }
-int main() {
-	char* in=new char[1000];
-	cout << "> ";
-	cin >> in;
-	cout << diff(in) << endl;
+int isarg(int argc,char* argv[],const char* need) {
+	unsigned int i=argc-1;
+	while(i>0) {
+		if(str(argv[i],need)) {
+			return(i);
+		}
+		i--;
+	}
+	return(0);
+}
+int main(int argc,char* argv[]) {
+	if(argc>=2) {
+		bool tmp;
+		char* res;
+		if((tmp=isarg(argc,argv,"easy"))) {
+			res=easy(argv[tmp+1]);
+		}
+		else {
+			res=diff(argv[1]);
+		}
+		if(res==NULL) {
+			cerr << "Wrong equal" << endl;;
+			return(1);
+		}
+		else {
+			cout << res << endl;
+			return(0);
+		}
+	}
+	else {
+		cerr << "Usage: " << argv[0] << " [easy] expr" << endl;
+		return(1);
+	}
 }
