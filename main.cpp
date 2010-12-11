@@ -5,11 +5,8 @@
 #include <math.h>
 #include <string.h>
 #include <strings.h>
-/*
- f(x)^g(x)=exp(ln(f(x))*g(x))
- */
 using namespace std;
-bool str(char* a,char* b) {
+bool str(const char* a,const char* b) {
 	return(strcmp(a,b)==0);
 }
 inline bool char_isnum(char sym) {
@@ -59,7 +56,7 @@ struct lexer_answer {
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
 const int TREE_DDEFAULT=TREE_DMATH;
-char* strn(char* src) {
+char* strn(const char* src) {
 	if(src[strlen(src)-1]!='\0') {
 		char* b=new char[strlen(src)];
 		strcpy(b,src);
@@ -67,22 +64,23 @@ char* strn(char* src) {
 		return(b);
 	}
 	else {
-		return(src);
+		char* src_=new char[strlen(src)-1];
+		strcpy(src_,src);
+		return(src_);
 	}
 }
-char* stran(char* src) {
-	if(src[strlen(src)]!='\0') {
-		return(src);
-		
+char* print_num(float a) {
+	char* h=new char[15];
+	int temp=static_cast<int>(a);
+	if(temp==a) {
+		sprintf(h,"%d",temp);
 	}
 	else {
-		src[strlen(src)]=NULL;
-		char* b;
-		strcpy(b,src);
-		return(b);
+		sprintf(h,"%f",a);
 	}
+	return(strn(h));
 }
-char* stradd(char* src,char* add) {
+char* stradd(char* src,const char* add) {
 	char* src_=new char[strlen(src)+strlen(add)-1];
 	strcpy(src_,strn(src));
 	strcat(src_,strn(add));
@@ -94,9 +92,9 @@ void var_dump(char* a) {
 void var_dump(int a) {
 	cerr << "Int: [" << a << "]" << endl;
 }
-char* repeat(char* str,int count=1) {
+char* repeat(const char* str,int count=1) {
 	int i=1;
-	char* res="";
+	char* res=NULL;
 	while(i<=count) {
 		res=stradd(res,str);
 		i++;
@@ -107,14 +105,18 @@ class tree {
 	private:
 		char* display_math() {
 			bool tmp;
-			char* res="";
+			char* res=NULL;
+			char* tmp_;
 			if(leaf==true) {
-				res=value;
+				tmp_=new char[strlen(value)-1];
+				strcpy(tmp_,value);
+				res=tmp_;
 			}
 			else if(b!=NULL) {
-				res="";
-				if(tmp=(!a->leaf)) {
-					res="(";
+				res=NULL;
+				if((tmp=(!a->leaf))) {
+					res=new char[0];
+					res[0]='(';
 					res=stradd(res,a->display_math());
 				}
 				else {
@@ -124,7 +126,7 @@ class tree {
 					res=stradd(res,")");
 				}
 				res=stradd(res,value);
-				if(tmp=(!b->leaf)) {
+				if((tmp=(!b->leaf))) {
 					res=stradd(res,"(");
 				}
 				res=stradd(res,b->display_math());
@@ -133,7 +135,9 @@ class tree {
 				}
 			}
 			else {
-				res=value;
+				tmp_=new char[strlen(value)-1];
+				strcpy(tmp_,value);
+				res=tmp_;
 				res=stradd(res,"(");
 				res=stradd(res,a->display_math());
 				res=stradd(res,")");
@@ -141,7 +145,7 @@ class tree {
 			return(res);
 		}
 		char* display_tree(int level=0) {
-			char* sym=":";
+			const char* sym=":";
 			char* res;
 			char* nl=new char[0];
 			nl[0]=10;
@@ -174,7 +178,7 @@ class tree {
 			return(res);
 		}
 		//Operation/value
-		char* value;
+		const char* value;
 		//leaf?
 		bool leaf;
 		//if leaf=>two pointers to other trees
@@ -182,18 +186,18 @@ class tree {
 		tree *a,*b;
 	public:
 		//leaf
-		tree(char* str): value(str),leaf(true) { }
+		tree(const char* str): value(str),leaf(true) { }
 		//binary with trees
-		tree(tree *in_a,char* op,tree *in_b): value(op),leaf(false),a(in_a),b(in_b) {}
+		tree(tree *in_a,const char* op,tree *in_b): value(op),leaf(false),a(in_a),b(in_b) {}
 		//unary with tree
-		tree(char *op,tree *in_): value(op),leaf(false),a(in_),b(NULL) {}
+		tree(const char *op,tree *in_): value(op),leaf(false),a(in_),b(NULL) {}
 		//binary with leaves
-		tree(char* ina, char* op, char* inb): value(op),leaf(false) {
+		tree(const char* ina, const char* op, const char* inb): value(op),leaf(false) {
 			a=new tree(ina);
 			b=new tree(inb);
 		}
 		//unary with leaf
-		tree(char* op,char* in_): value(op),leaf(false),b(NULL) {
+		tree(const char* op,const char* in_): value(op),leaf(false),b(NULL) {
 			a=new tree(in_);
 		}
 		tree(){}
@@ -221,9 +225,9 @@ class tree {
 				delete *b;
 			}*/
 		}
-		tree* diff(char* base) {
+		tree* diff(const char* base) {
 			tree* nt;
-			nt=new tree("???");
+			nt=new tree(NULL);
 			if(leaf==true) {
 				if(str(value,base)) {
 					nt=new tree("1");
@@ -327,8 +331,7 @@ class tree {
 					if(str(value,"^")) {
 						if(nt->a->leaf&&nt->b->leaf) {
 							if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
-								char* h=new char[100];
-								sprintf(h, "%f", pow(atof(nt->a->value),atof(nt->b->value)));
+								char* h=print_num(pow(atof(nt->a->value),atof(nt->b->value)));
 								rt=new tree(h);
 							}
 						}
@@ -345,8 +348,7 @@ class tree {
 									cout << "Division by zero." << endl;
 								}
 								else if(((atoi(nt->a->value)*10) % atoi(nt->b->value))==0) {
-									char* h=new char[100];
-									sprintf(h, "%f", atof(nt->a->value)/atof(nt->b->value));
+									char* h=print_num(atof(nt->a->value)/atof(nt->b->value));
 									rt=new tree(h);
 								}
 							}
@@ -371,8 +373,7 @@ class tree {
 						}
 						if(nt->a->leaf&&nt->b->leaf) {
 							if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
-								char* h=new char[100];
-								sprintf(h, "%f", atof(nt->a->value)+atof(nt->b->value));
+								char* h=print_num(atof(nt->a->value)+atof(nt->b->value));
 								rt=new tree(h);
 							}
 						}
@@ -386,8 +387,7 @@ class tree {
 							rt=nt->a->copymem();
 						}
 						if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
-							char* h=new char[100];
-							sprintf(h, "%f", atof(nt->a->value)-atof(nt->b->value));
+							char* h=print_num(atof(nt->a->value)-atof(nt->b->value));
 							rt=new tree(h);
 						}
 					}
@@ -402,8 +402,7 @@ class tree {
 							rt=nt->a;
 						}
 						if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
-							char* h=new char[100];
-							sprintf(h, "%f", atof(nt->a->value)*atof(nt->b->value));
+							char* h=print_num(atof(nt->a->value)*atof(nt->b->value));
 							rt=new tree(h);
 						}
 					}
@@ -433,7 +432,7 @@ lexer_answer lexer(char* str) {
 	int len=strlen(str);
 
 	int pos=0;
-	char* temp="",*a,*b;
+	char* temp=NULL,*a,*b;
 	char current;
 	int laststate=-1,currentstate;
 	token* result=new token[len]; //char count more than tokens count.
@@ -454,6 +453,7 @@ lexer_answer lexer(char* str) {
 		}
 		else {
 			if((currentstate!=CHAR_TBR2)&&(currentstate!=CHAR_TBR1)&&(currentstate!=CHAR_TOP)&&(laststate==currentstate)) {
+				a=new char[strlen(temp)-1];
 				strcpy(a,temp);
 				temp=new char[strlen(temp)];
 				b=new char[0];
@@ -498,7 +498,7 @@ int op_prio(char* a) {
 	return(0);
 }
 parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
-	tree* rtree=NULL,*rtree1;
+	tree* rtree=NULL;
 	parser_answer result,tmpres,tmpres1,tmpres2;
 	result.pos=pos;
 	bool ok=false;
@@ -577,27 +577,26 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 	result.tr=rtree;
 	return(result);
 }
-int main() {
+char* diff(char* src) {
 	parser_answer b;
 	tree tree2;
-	char* in=new char[1000];
-	while(true) {
-		cout << "> ";
-		cin >> in;
-		b=parser(lexer(strn(in)));
-		if(b.tr==NULL) {
-				cerr << "Wrong equal." << endl;
-				return 1;
-		}
-		tree2=*b.tr;
-		cout << "Equal:" << endl;
-		cout << tree2.display();
-		cout << endl <<  "Easy equal:" << endl;
-		cout << tree2.easy()->display();
-		cout << endl <<	 "Diff:" << endl;
-		cout << (tree2.easy())->diff("x")->display();
-		cout << endl << "Easy diff:" << endl;
-		cout << (((tree2.easy())->diff("x"))->easy())->display();
-		cout << endl << endl;
+	b=parser(lexer(strn(src)));
+	if(b.tr==NULL) {
+			return(NULL);
 	}
+	tree2=*b.tr;
+	/*cout << "Equal:" << endl;
+	cout << tree2.display();
+	cout << endl <<  "Easy equal:" << endl;
+	cout << tree2.easy()->display();
+	cout << endl <<	 "Diff:" << endl;
+	cout << (tree2.easy())->diff("x")->display();
+	cout << endl << "Easy diff:" << endl;*/
+	return((((tree2.easy())->diff("x"))->easy())->display());
+}
+int main() {
+	char* in=new char[1000];
+	cout << "> ";
+	cin >> in;
+	cout << diff(in) << endl;
 }
