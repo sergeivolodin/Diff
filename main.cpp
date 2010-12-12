@@ -52,6 +52,7 @@ struct token {
 struct lexer_answer {
 	token* result;
 	int max;
+	bool errors;
 };
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
@@ -327,14 +328,36 @@ class tree {
 		}
 		tree* easy() {
 			tree *nt,*rt;
+			bool ok=false;
 			if(leaf==false) {
 				if(b==NULL) {
 					nt=a->easy();
 					if(str(value,"-")) {
 						rt=new tree("-",nt);
+						ok=true;
 						//rt=new tree(new tree("0"),value,nt);
 					}
-					else {
+					else if(str(value,"exp")) {
+						if(!nt->leaf) {
+							if(nt->b==NULL&&str(nt->value,"ln")) {
+								rt=nt->a;
+								ok=true;
+							}
+							else if(str(nt->value,"*")) {
+								//ln(...)*...
+								if(!nt->a->leaf&&str(nt->a->value,"ln")) {
+									ok=true;
+									rt=new tree(nt->a->a,"^",nt->b);
+								}
+								if(!nt->b->leaf&&str(nt->b->value,"ln")) {
+									ok=true;
+									rt=new tree(nt->b->a,"^",nt->a);
+								}
+							}
+						}
+						
+					}
+					if(!ok) {
 						rt=new tree(value,nt);
 					}
 				}
@@ -494,6 +517,7 @@ lexer_answer lexer(char* str) {
 	}
 	res.max=i-1;
 	res.result=result;
+	res.errors=false;
 	return(res);
 }
 int op_prio(char* a) {
@@ -538,6 +562,11 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 				}
 			}
 		}
+		else {
+			ok=true;
+			rtree=tmpres.tr;
+			result.pos=tmpres.pos;
+		}
 	}
 	//brackets
 	if(src.result[pos].t==CHAR_TBR1&&!ok) {
@@ -549,20 +578,22 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 		}
 		else {
 			cerr << "Closing bracket not found" << endl;
+			src.errors=true;
 			return(result);
 		}
 	}
 	//unary
 	if(src.result[pos].t==CHAR_TOP&&!ok) {
 		ok=true;
-		tmpres=parser(src,pos+1);
-		if(str(src.result[pos].c,"-")) {
+		tmpres=parser(src,pos+1,false);
+		if(str(src.result[pos].c,"-")&&tmpres.tr!=NULL) {
 			rtree=new tree("-",tmpres.tr);
 			result.pos=tmpres.pos;
 		}
 		else {
 			cerr << pos << ": unary \"" << src.result[pos].c << "\" not allowed" << endl;
-			return(result);
+			src.errors=true;
+			result.pos=tmpres.pos;
 		}
 	}
 	//functions
@@ -576,8 +607,8 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 				rtree=new tree(src.result[pos].c,tmpres.tr);
 			}
 			else {
+				src.errors=true;
 				cerr << tmpres.pos << ": function closing bracket expected, but '" << src.result[tmpres.pos-1].c << "' found." << endl;
-				return(result);
 			}
 		}
 	}
@@ -587,35 +618,35 @@ parser_answer parser(lexer_answer src,int pos=0,bool binary=true,int parent_prio
 		result.pos=pos+1;
 		rtree=new tree(src.result[pos].c);
 	}
-	result.tr=rtree;
+	if(src.errors) {
+		result.tr=NULL;
+	}
+	else {
+		result.tr=rtree;
+	}
 	return(result);
 }
-char* easy(char* src) {
+tree* parse(char* src) {
+	lexer_answer a;
 	parser_answer b;
-	tree tree2;
-	b=parser(lexer(strn(src)));
-	if(b.tr==NULL) {
+	a=lexer(strn(src));
+	b=parser(a);
+	if(b.tr==NULL||a.errors) {
 		return(NULL);
 	}
-	tree2=*b.tr;
-	return(tree2.easy()->display());
+	return(b.tr);
+}
+char* show(char* src) {
+	tree* tree2=parse(src);
+	return(tree2==NULL?NULL:tree2->display());
+}
+char* easy(char* src) {
+	tree* tree2=parse(src);
+	return(tree2==NULL?NULL:tree2->easy()->display());
 }
 char* diff(char* src) {
-	parser_answer b;
-	tree tree2;
-	b=parser(lexer(strn(src)));
-	if(b.tr==NULL) {
-		return(NULL);
-	}
-	tree2=*b.tr;
-	/*cout << "Equal:" << endl;
-	cout << tree2.display();
-	cout << endl <<  "Easy equal:" << endl;
-	cout << tree2.easy()->display();
-	cout << endl <<	 "Diff:" << endl;
-	cout << (tree2.easy())->diff("x")->display();
-	cout << endl << "Easy diff:" << endl;*/
-	return((((tree2.easy())->diff("x"))->easy())->display());
+	tree* tree2=parse(src);
+	return(tree2==NULL?NULL:((tree2->easy()->diff("x"))->easy())->display());
 }
 int isarg(int argc,char* argv[],const char* need) {
 	unsigned int i=argc-1;
@@ -627,15 +658,19 @@ int isarg(int argc,char* argv[],const char* need) {
 	}
 	return(0);
 }
+//char* in
 int main(int argc,char* argv[]) {
-	if(argc>=2) {
-		bool tmp;
-		char* res;
+	bool tmp;
+	char* res;
+	if(argc==3) {
 		if((tmp=isarg(argc,argv,"easy"))) {
 			res=easy(argv[tmp+1]);
 		}
-		else {
-			res=diff(argv[1]);
+		else if((tmp=isarg(argc,argv,"show"))) {
+			res=show(argv[tmp+1]);
+		}
+		else if((tmp=isarg(argc,argv,"diff"))) {
+			res=diff(argv[tmp+1]);
 		}
 		if(res==NULL) {
 			cerr << "Wrong equal" << endl;;
@@ -646,8 +681,40 @@ int main(int argc,char* argv[]) {
 			return(0);
 		}
 	}
+	else if(argc==2) {
+		char* in=new char[100];
+		cout << "> ";
+		cin >> in;
+		tmp=0;
+		if(isarg(argc,argv,"easy")) {
+			res=easy(in);
+			tmp=1;
+		}
+		else if(isarg(argc,argv,"show")) {
+			res=show(in);
+			tmp=1;
+		}
+		else if(isarg(argc,argv,"diff")) {
+			res=diff(in);
+			tmp=1;
+		}
+		if(tmp==0) {
+			cerr << "Wrong command." << endl;
+			return(1);
+		}
+		else { 
+			if(res==NULL) {
+				cerr << "Wrong equal" << endl;;
+				return(1);
+			}
+			else {
+				cout << res << endl;
+				return(0);
+			}
+		}
+	}
 	else {
-		cerr << "Usage: " << argv[0] << " [easy] expr" << endl;
+		cerr << "Usage: " << argv[0] << " [easy|show|diff] expr" << endl;
 		return(1);
 	}
 }
