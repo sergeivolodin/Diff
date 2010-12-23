@@ -15,7 +15,6 @@ bool is_integer(const float a) {
     }
     return(false);
 }
-
 void print_str(const char* str) {
     if(str!=NULL) {
         int i=0;
@@ -37,6 +36,10 @@ bool str(const char* a,const char* b) {
 inline bool char_isnum(char sym) {
     return((sym>='0'&&sym<='9')||sym=='.'||sym==',');
 }
+inline bool char_isnum_m(char sym) {
+    return((sym>='0'&&sym<='9')||sym=='.'||sym==','||sym=='-');
+}
+
 inline bool char_islett(char sym) {
     return((sym>='A'&&sym<='Z')||(sym>='a'&&sym<='z'));
 }
@@ -130,7 +133,6 @@ char* char_replace(char* src,char a,char b) {
 char* decimal_point(char* src) {
     return(char_replace(src,'.',','));
 }
-
 char* print_num(float a) {
     char* h=new char[15];
     if(is_integer(a)) {
@@ -177,7 +179,6 @@ void var_dump(const char* a) {
 /*void var_dump(int a) {
         cerr << "Int: [" << a << "]" << endl;
 }*/
-
 char* repeat(const char* str,int count=1) {
     int i=1;
     char* res=NULL;
@@ -198,7 +199,6 @@ char* strcp(const char* src) {
     destination[strlen(src)]='\0';
     return(destination);
 }
-
 class tree {
 private:
     char* display_math(bool nigma=false) {
@@ -236,6 +236,7 @@ private:
             else {
                 res=stradd(res,value);
             }
+            //&&b->b!=NULL
             if((tmp=(!b->leaf))) {
                 res=stradd(res,MATH_BR1);
             }
@@ -358,6 +359,12 @@ private:
             }
         }
     }*/
+    inline bool isleaf() {
+        return(leaf);
+    }
+    char* getvalue() {
+        return(value);
+    }
     bool contents(const char* src) {
         if(leaf) {
             return(str(src,value));
@@ -499,6 +506,9 @@ private:
                 if(b==NULL||sec.b==NULL) {
                     return(false);
                 }
+                if(str(value,MATH_MUL)||str(value,MATH_ADD)) {
+                    return((((*b==*(sec.b)))&&(*a==(*(sec.a))))||(((*a==*(sec.b)))&&(*b==(*(sec.a)))));
+                }
                 return(((*b==*(sec.b)))&&(*a==(*(sec.a))));
             }
         }
@@ -626,24 +636,26 @@ private:
             }
             if(b==NULL) {
                 nt=a->easy();
+                rt=new tree(value,nt);
                 if(nt==NULL) {
                     return(NULL);
                 }
                 if(str(value,MATH_SUB)) {
                     rt=new tree(MATH_SUB,nt);
-                    if(nt->leaf) {
-                        if(char_isnum(nt->value[0])) {
-                            rt=new tree(print_num(0-atof(nt->value)));
+                    if(!nt->leaf) {
+                        if(nt->b==NULL) {
+                            if(str(nt->value,MATH_SUB)) {
+                                rt=nt->a;
+                            }
                         }
                     }
                     ok=true;
-                    //rt=new tree(new tree(MATH_0),value,nt);
                 }
                 else if(str(value,MATH_SQRT)) {
                     if(nt->leaf) {
-                        int a;
-                        if(is_integer(a=sqrt(atof(nt->a->value)))) {
-                            rt=new tree(print_num(a));
+                        float sq_res=1.1;
+                        if(is_integer(sq_res=sqrt(atof(nt->value)))&&char_isnum(nt->value[0])) {
+                            rt=new tree(print_num(sq_res));
                             ok=true;
                         }
                     }
@@ -668,9 +680,6 @@ private:
                     }
 
                 }
-                if(!ok) {
-                    rt=new tree(value,nt);
-                }
             }
             else {
                 nta=a->easy();
@@ -682,7 +691,7 @@ private:
                 rt=nt;
                 if(str(value,MATH_POW)) {
                     if(nt->a->leaf&&nt->b->leaf) {
-                        if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+                        if(char_isnum_m(nt->a->value[0])&&char_isnum_m(nt->b->value[0])) {
                             char* h=print_num(pow(atof(nt->a->value),atof(nt->b->value)));
                             rt=new tree(h);
                         }
@@ -695,7 +704,7 @@ private:
                 }
                 if(str(value,MATH_DIV)) {
                     if(nt->a->leaf&&nt->b->leaf) {
-                        if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+                        if(char_isnum_m(nt->a->value[0])&&char_isnum_m(nt->b->value[0])) {
                             if(atoi(nt->b->value)==0) {
                                 cout << "Division by zero." << endl;
                             }
@@ -705,30 +714,43 @@ private:
                             }
                         }
                     }
-                    if(atof(nt->a->value)==0&&char_isnum(nt->a->value[0])) {
+                    if(atof(nt->a->value)==0&&char_isnum_m(nt->a->value[0])) {
                         rt=new tree(MATH_0);
                     }
-                    if(atof(nt->b->value)==0&&char_isnum(nt->b->value[0])) {
+                    if(atof(nt->b->value)==0&&char_isnum_m(nt->b->value[0])) {
                         cout << "Division by zero.";
                         rt=new tree(MATH_SUB);
                     }
-                    if(atof(nt->b->value)==1&&char_isnum(nt->b->value[0])) {
+                    if(atof(nt->b->value)==1&&char_isnum_m(nt->b->value[0])) {
                         rt=nt->a->copymem();
                     }
                 }
                 if(str(value,MATH_ADD)) {
+                    if(!nt->b->leaf&&nt->b->b==NULL&&str(nt->b->value,MATH_SUB)) {
+                        rt=new tree(nt->a,MATH_SUB,nt->b->a);
+                    }
+                    if(!nt->b->leaf&&str(nt->b->value,MATH_SUB)&&nt->b->b==NULL) {
+                        if((*(nt->a))==(*(nt->b->a))) {
+                            rt=new tree(MATH_0);
+                        }
+                    }
+                    if(!nt->a->leaf&&str(nt->a->value,MATH_SUB)&&nt->a->b==NULL) {
+                        if((*(nt->a->a))==(*(nt->b))) {
+                            rt=new tree(MATH_0);
+                        }
+                    }
                     if((*(nt->a))==(*(nt->b))) {
                         //cerr << nt->a->display() << value << nt->b->display() << endl;
                         rt=new tree(new tree(MATH_2),MATH_MUL,nt->a);
                     }
-                    if(atof(nt->a->value)==0&&char_isnum(nt->a->value[0])) {
+                    if(nt->a->leaf&&atof(nt->a->value)==0&&char_isnum_m(nt->a->value[0])) {
                         rt=nt->b->copymem();
                     }
-                    if(atof(nt->b->value)==0&&char_isnum(nt->b->value[0])) {
+                    if(nt->b->leaf&&atof(nt->b->value)==0&&char_isnum_m(nt->b->value[0])) {
                         rt=nt->a->copymem();
                     }
                     if(nt->a->leaf&&nt->b->leaf) {
-                        if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+                        if(char_isnum_m(nt->a->value[0])&&char_isnum_m(nt->b->value[0])) {
                             char* h=print_num(atof(nt->a->value)+atof(nt->b->value));
                             rt=new tree(h);
                         }
@@ -736,13 +758,13 @@ private:
                 }
                 if(str(value,MATH_SUB)) {
                     //dont change order!
-                    if(atof(nt->a->value)==0&&char_isnum(nt->a->value[0])) {
+                    if(atof(nt->a->value)==0&&char_isnum_m(nt->a->value[0])) {
                         rt=new tree(MATH_SUB,nt->b);
                     }
-                    if(atof(nt->b->value)==0&&char_isnum(nt->b->value[0])) {
+                    if(atof(nt->b->value)==0&&char_isnum_m(nt->b->value[0])) {
                         rt=nt->a->copymem();
                     }
-                    if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
+                    if(char_isnum_m(nt->a->value[0])&&char_isnum_m(nt->b->value[0])) {
                         char* h=print_num(atof(nt->a->value)-atof(nt->b->value));
                         rt=new tree(h);
                     }
@@ -751,21 +773,34 @@ private:
                     }
                 }
                 if(str(value,MATH_MUL)) {
+                    if(nt->a->leaf&&char_isnum_m(nt->a->value[0])) {
+                        //3*(7*...)
+                        if(!nt->b->leaf&&nt->b->a->leaf&&char_isnum_m(nt->b->a->value[0])) {
+                            if(str(nt->b->value,MATH_MUL)) {
+                                rt=new tree(new tree(print_num(atof(nt->a->value)*atof(nt->b->a->value))),MATH_MUL,nt->b->b);
+                            }
+                        }
+                    }
+                    //(1/x)*x
+                    if(!nt->a->leaf&&str(nt->a->value,MATH_DIV)) {
+                        if(*nt->a->b==*nt->b) {
+                            rt=new tree(MATH_1);
+                        }
+                    }
                     if((nt->a->leaf&&str(nt->a->value,MATH_0))||(nt->b->leaf&&str(nt->b->value,MATH_0))) {
                         rt=new tree(MATH_0);
                     }
-                    if(atof(nt->a->value)==1&&char_isnum(nt->a->value[0])) {
-                        rt=nt->b;
-                    }
-                    if(atof(nt->b->value)==1&&char_isnum(nt->b->value[0])) {
-                        rt=nt->a;
-                    }
-                    if(char_isnum(nt->a->value[0])&&char_isnum(nt->b->value[0])) {
-                        //cerr << nt->a->value << " ";
-                        //cerr << atof(nt->a->value) << " " << atof(nt->a->value)*atof(nt->b->value) << endl;
+                    if(char_isnum_m(nt->a->value[0])&&char_isnum_m(nt->b->value[0])&&nt->a->leaf&&nt->b->leaf) {
                         char* h=print_num(atof(nt->a->value)*atof(nt->b->value));
                         rt=new tree(h);
                     }
+                    if(atof(nt->a->value)==1&&char_isnum_m(nt->a->value[0])) {
+                        rt=nt->b;
+                    }
+                    if(atof(nt->b->value)==1&&char_isnum_m(nt->b->value[0])) {
+                        rt=nt->a;
+                    }
+                    //3*...
                 }
             }
         }
@@ -873,8 +908,9 @@ lexer_answer* lexer(char* str) {
 lexer_answer* lexer_normal(lexer_answer* src) {
     int i=0,ri=0;
     lexer_answer* res=new lexer_answer;
-    res->result=new token[(src->max)*2+1];
+    res->result=new token[((src->max)*2)+1];
     res->errors=src->errors;
+    char* pow=strcp(MATH_POW),*mul=strcp(MATH_MUL);
     while(i<=src->max) {
         res->result[ri].c=src->result[i].c;
         res->result[ri].t=src->result[i].t;
@@ -882,17 +918,26 @@ lexer_answer* lexer_normal(lexer_answer* src) {
         if(i<src->max) {
             if(src->result[i].t==CHAR_TNUM&&src->result[i+1].t==CHAR_TLETT) {
                 res->result[ri].t=CHAR_TOP;
-                res->result[ri].c="*";
+                res->result[ri].c=mul;
                 ri++;
                 i++;
                 res->result[ri].c=src->result[i].c;
                 res->result[ri].t=src->result[i].t;
                 ri++;
-                //cerr << "ax" << endl;
+                if(src->result[i+2].t==CHAR_TNUM) {
+                    res->result[ri].t=CHAR_TOP;
+                    res->result[ri].c=pow;
+                    ri++;
+                    i++;
+                    res->result[ri].c=src->result[i].c;
+                    res->result[ri].t=src->result[i].t;
+                    ri++;
+                }
             }
+            //repeat.
             if(src->result[i].t==CHAR_TLETT&&src->result[i+1].t==CHAR_TNUM) {
                 res->result[ri].t=CHAR_TOP;
-                res->result[ri].c="^";
+                res->result[ri].c=pow;
                 ri++;
                 i++;
                 res->result[ri].c=src->result[i].c;
@@ -906,6 +951,10 @@ lexer_answer* lexer_normal(lexer_answer* src) {
     return(res);
 }
 int op_prio(char* a) {
+    static const int def=0;
+    if(a==NULL) {
+        return(def);
+    }
     if(a[0]=='+'||a[0]=='-') {
         return(1);
     }
@@ -917,7 +966,7 @@ int op_prio(char* a) {
     }
     cerr << "unexpected operator [" << a << "]" << endl;
     //its prio is smaller
-    return(0);
+    return(def);
 }
 parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
     tree* rtree=NULL;
@@ -971,8 +1020,16 @@ parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pri
     if(src->result[pos].t==CHAR_TOP&&!ok) {
         ok=true;
         tmpres=parser(src,pos+1,false);
+        tree* a,*b;
         if(str(src->result[pos].c,MATH_SUB)&&tmpres.tr!=NULL) {
             rtree=new tree(MATH_SUB,tmpres.tr);
+            a=tmpres.tr;
+            if(a->test()) {
+                b=a->easy();
+                if(b->isleaf()&&char_isnum(b->getvalue()[0])) {
+                    rtree=new tree(print_num(-atof(b->getvalue())));
+                }
+            }
             result.pos=tmpres.pos;
         }
         else {
@@ -1012,30 +1069,14 @@ parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pri
     return(result);
 }
 tree* parse(char* src) {
-    if(src=="") {
+    if(str(src,"")) {
         return(NULL);
     }
     lexer_answer* a,*a_src;
     parser_answer b;
-    //cerr << "==========LEXER============" << endl;
     a_src=lexer(src);
-    //a=lexer_normal(a_src);
-    a=a_src;
-//    int i=0;
-//    while(i<=a->max) {
-//        //var_dump(a.result[i].c);
-//        print_str(a->result[i].c);
-////        cerr << a->result[i].t << endl;
-//        i++;
-//    }
-    //cerr << "==========/LEXER============" << endl;
-    //cerr << "==========PARSER============" << endl;
-    /*if(a->errors) {
-        cerr << "ERRORS FOUND";
-    }*/
+    a=lexer_normal(a_src);
     b=parser(a);
-    //cerr << "==========/PARSER============" << endl;
-    //cerr << "[" << b.tr->display() << "]" << endl;
     if(b.tr==NULL||a->errors) {
         return(NULL);
     }
@@ -1043,13 +1084,6 @@ tree* parse(char* src) {
 }
 char* display(char* src,int type=TREE_DMATH) {
     tree* tree2=parse(src);
-    /*if(tree2->contents(MATH_DEFDIFF)) {
-        cerr << "tree contents x";
-    }
-    else {
-        cerr << "tree doesnt content x";
-    }
-    cerr << endl;*/
     return(tree2==NULL?NULL:(tree2->test()?tree2->display(type):NULL));
 }
 char* easy(char* src) {
@@ -1059,12 +1093,12 @@ char* easy(char* src) {
 }
 char* integral(char* src,const char* base=MATH_DEFDIFF) {
     tree* tree2=parse(src);
-    tree* integral=(tree2==NULL?NULL:(tree2->test()?tree2->integral(base):NULL));
+    tree* integral=(tree2==NULL?NULL:(tree2->test()?tree2->easy()->integral(base):NULL));
     return(integral==NULL?NULL:integral->easy()->display());
 }
 char* diff(char* src,const char* base=MATH_DEFDIFF) {
     tree* tree2=parse(src);
-    tree* diff=(tree2==NULL?NULL:(tree2->test()?tree2->diff(base):NULL));
+    tree* diff=(tree2==NULL?NULL:(tree2->test()?tree2->easy()->diff(base):NULL));
     return(diff==NULL?NULL:diff->easy()->display());
 }
 int isarg(int argc,char* argv[],const char* need) {
@@ -1122,18 +1156,16 @@ void Diff::on_button_easy_clicked() {
     }
     ui->line_dest->setPlainText(a);
 }
+
 void Diff::on_button_show_clicked() {
     QString a;
-    char* result=display(ui->line_src->toPlainText().toAscii().data(),TREE_DNIGMA);
+    char* result=display(ui->line_src->toPlainText().toAscii().data());
     if(result==NULL) {
         a=ERROR;
     }
     else {
         a=result;
     }
-    //    ui->webView->setUrl();
-    //QUrl aa=a;
-    //ui->webView->setUrl(aa);
     ui->line_dest->setPlainText(a);
 }
 void Diff::changeEvent(QEvent *e)

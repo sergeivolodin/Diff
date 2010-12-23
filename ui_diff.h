@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Fri Dec 17 19:11:08 2010
+** Created: Thu Dec 23 16:39:08 2010
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -33,7 +33,7 @@ class Ui_Diff
 {
 public:
     QAction *actionExit;
-    QAction *actionAbouyt;
+    QAction *actionAbout;
     QWidget *centralWidget;
     QWidget *horizontalLayoutWidget_3;
     QHBoxLayout *horizontalLayout_3;
@@ -50,18 +50,15 @@ public:
     QHBoxLayout *horizontalLayout_2;
     QLabel *label;
     QLineEdit *line_base;
-    QHBoxLayout *horizontalLayout;
     QLabel *label_2;
-    QLineEdit *line_level;
     QMenuBar *menuBar;
     QMenu *menuDiff;
-    QMenu *menuHelp;
 
     void setupUi(QMainWindow *Diff)
     {
         if (Diff->objectName().isEmpty())
             Diff->setObjectName(QString::fromUtf8("Diff"));
-        Diff->resize(708, 448);
+        Diff->resize(708, 452);
         QSizePolicy sizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
@@ -71,8 +68,8 @@ public:
         Diff->setFocusPolicy(Qt::TabFocus);
         actionExit = new QAction(Diff);
         actionExit->setObjectName(QString::fromUtf8("actionExit"));
-        actionAbouyt = new QAction(Diff);
-        actionAbouyt->setObjectName(QString::fromUtf8("actionAbouyt"));
+        actionAbout = new QAction(Diff);
+        actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
         centralWidget = new QWidget(Diff);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         horizontalLayoutWidget_3 = new QWidget(centralWidget);
@@ -140,7 +137,7 @@ public:
         line_dest->setReadOnly(true);
         verticalLayoutWidget_2 = new QWidget(centralWidget);
         verticalLayoutWidget_2->setObjectName(QString::fromUtf8("verticalLayoutWidget_2"));
-        verticalLayoutWidget_2->setGeometry(QRect(10, 150, 147, 52));
+        verticalLayoutWidget_2->setGeometry(QRect(10, 150, 151, 31));
         verticalLayout_2 = new QVBoxLayout(verticalLayoutWidget_2);
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
@@ -164,47 +161,19 @@ public:
 
         verticalLayout_2->addLayout(horizontalLayout_2);
 
-        horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setSpacing(6);
-        horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
-        label_2 = new QLabel(verticalLayoutWidget_2);
+        label_2 = new QLabel(centralWidget);
         label_2->setObjectName(QString::fromUtf8("label_2"));
-        QSizePolicy sizePolicy3(QSizePolicy::Minimum, QSizePolicy::Minimum);
-        sizePolicy3.setHorizontalStretch(0);
-        sizePolicy3.setVerticalStretch(0);
-        sizePolicy3.setHeightForWidth(label_2->sizePolicy().hasHeightForWidth());
-        label_2->setSizePolicy(sizePolicy3);
-
-        horizontalLayout->addWidget(label_2);
-
-        line_level = new QLineEdit(verticalLayoutWidget_2);
-        line_level->setObjectName(QString::fromUtf8("line_level"));
-        QSizePolicy sizePolicy4(QSizePolicy::Minimum, QSizePolicy::Fixed);
-        sizePolicy4.setHorizontalStretch(0);
-        sizePolicy4.setVerticalStretch(0);
-        sizePolicy4.setHeightForWidth(line_level->sizePolicy().hasHeightForWidth());
-        line_level->setSizePolicy(sizePolicy4);
-        line_level->setInputMethodHints(Qt::ImhDigitsOnly);
-
-        horizontalLayout->addWidget(line_level);
-
-
-        verticalLayout_2->addLayout(horizontalLayout);
-
+        label_2->setGeometry(QRect(10, 410, 101, 16));
         Diff->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(Diff);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
         menuBar->setGeometry(QRect(0, 0, 708, 21));
         menuDiff = new QMenu(menuBar);
         menuDiff->setObjectName(QString::fromUtf8("menuDiff"));
-        menuHelp = new QMenu(menuBar);
-        menuHelp->setObjectName(QString::fromUtf8("menuHelp"));
         Diff->setMenuBar(menuBar);
 
         menuBar->addAction(menuDiff->menuAction());
-        menuBar->addAction(menuHelp->menuAction());
         menuDiff->addAction(actionExit);
-        menuHelp->addAction(actionAbouyt);
 
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
@@ -216,7 +185,8 @@ public:
     {
         Diff->setWindowTitle(QApplication::translate("Diff", "Diff", 0, QApplication::UnicodeUTF8));
         actionExit->setText(QApplication::translate("Diff", "Exit", 0, QApplication::UnicodeUTF8));
-        actionAbouyt->setText(QApplication::translate("Diff", "About", 0, QApplication::UnicodeUTF8));
+        actionExit->setShortcut(QApplication::translate("Diff", "Alt+Q", 0, QApplication::UnicodeUTF8));
+        actionAbout->setText(QApplication::translate("Diff", "About", 0, QApplication::UnicodeUTF8));
         button_diff->setText(QApplication::translate("Diff", "Derivative", 0, QApplication::UnicodeUTF8));
         button_integral->setText(QApplication::translate("Diff", "Integral", 0, QApplication::UnicodeUTF8));
         button_easy->setText(QApplication::translate("Diff", "Easy", 0, QApplication::UnicodeUTF8));
@@ -225,10 +195,8 @@ public:
         groupBox_2->setTitle(QApplication::translate("Diff", "Result:", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("Diff", "Base", 0, QApplication::UnicodeUTF8));
         line_base->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
-        label_2->setText(QApplication::translate("Diff", "Level", 0, QApplication::UnicodeUTF8));
-        line_level->setText(QApplication::translate("Diff", "1", 0, QApplication::UnicodeUTF8));
+        label_2->setText(QApplication::translate("Diff", "http://i.179e.net", 0, QApplication::UnicodeUTF8));
         menuDiff->setTitle(QApplication::translate("Diff", "Program", 0, QApplication::UnicodeUTF8));
-        menuHelp->setTitle(QApplication::translate("Diff", "Help", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };
