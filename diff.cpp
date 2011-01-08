@@ -7,6 +7,16 @@
 #include <math.h>
 #include <string.h>
 #include <strings.h>
+/*
+  diff table: functions, operations
+  custom operations
+  new functions (api), documenation
+  */
+/*
+  tree::type() leaf-0,unary-1,binary-2
+  diff table: add !contents (x) - for integrals, also parsing (add '!' to variant of letters;
+    operator== in trees: add order change for it.
+  */
 using namespace std;
 bool is_integer(const float a) {
     int temp=static_cast<int>(a);
@@ -82,34 +92,44 @@ struct lexer_answer {
     int max;
     bool errors;
 };
+struct strings {
+    char** strs;
+    int max;
+};
+//strings
+const char* ERROR="Error.";
 const char* MATH_BR1="(";
 const char* MATH_BR2=")";
+const char* MATH_INTEGRAL_ADDC="+C";
+const char* MATH_NADD="%2B";
+const char* MATH_NO="-";
+//constans
+const char* MATH_PI="pi";
+const char* MATH_M1="-1";
+const char* MATH_DEFDIFF="x";
+const char* MATH_0="0";
+const char* MATH_1="1";
+const char* MATH_2="2";
+//functions
 const char* MATH_SIN="sin";
 const char* MATH_COS="cos";
 const char* MATH_TG="tg";
 const char* MATH_ERF="erf";
 const char* MATH_EXP="exp";
-const char* ERROR="Error.";
-const char* MATH_INTEGRAL_ADDC="+C";
-const char* MATH_NADD="%2B";
-const char* MATH_PI="pi";
 const char* MATH_LN="ln";
 const char* MATH_SQRT="sqrt";
+const char* MATH_ARCSIN="arcsin";
+const char* MATH_ARCCOS="arccos";
+const char* MATH_ABS="abs";
+const char* MATH_ARCTG="arctg";
+//operations
 const char* MATH_MUL="*";
-const char* MATH_M1="-1";
 const char* MATH_DIV="/";
 const char* MATH_ADD="+";
 const char* MATH_SUB="-";
 const char* MATH_POW="^";
 const char* MATH_POW1="_";
-const char* MATH_ARCSIN="arcsin";
-const char* MATH_ARCCOS="arccos";
-const char* MATH_ABS="abs";
-const char* MATH_ARCTG="arctg";
-const char* MATH_DEFDIFF="x";
-const char* MATH_0="0";
-const char* MATH_1="1";
-const char* MATH_2="2";
+//tree constans
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
 const int TREE_DNIGMA=2;
@@ -143,10 +163,22 @@ char* print_num(float a) {
     }
     return(decimal_point(h));
 }
+char* strcp(const char* src) {
+    if(src==NULL){return(NULL);}
+    char* destination=new char[strlen(src)];
+    unsigned int i=0;
+    while(src[i]!='\0') {
+        destination[i]=src[i];
+        i++;
+    }
+    destination[strlen(src)]='\0';
+    return(destination);
+}
 char* stradd(char* l, const char* r){
+    if(l==NULL) {return(strcp(r));}
     const unsigned int offset=strlen(l);
     const unsigned int maxindex=offset+strlen(r);
-    char* d=new char[maxindex+1];
+    char* d=new char[maxindex+2];
     unsigned int i=0;
     bool l_end=false;
     bool r_end=false;
@@ -187,17 +219,6 @@ char* repeat(const char* str,int count=1) {
         i++;
     }
     return(res);
-}
-char* strcp(const char* src) {
-    if(src==NULL){return(NULL);}
-    char* destination=new char[strlen(src)];
-    unsigned int i=0;
-    while(src[i]!='\0') {
-        destination[i]=src[i];
-        i++;
-    }
-    destination[strlen(src)]='\0';
-    return(destination);
 }
 class tree {
 private:
@@ -250,7 +271,7 @@ private:
             }
         }
         else {
-            tmp_=new char[strlen(value)-1];
+            tmp_=new char[strlen(value)];
             strcpy(tmp_,value);
             res=tmp_;
             res=stradd(res,MATH_BR1);
@@ -266,7 +287,7 @@ private:
     char* display_tree(int level=0) {
         const char* sym=":";
         char* res;
-        char* nl=new char[0];
+        char* nl=new char[1];
         nl[0]=10;
         if(leaf==true) {
             if(value==NULL) {
@@ -833,10 +854,47 @@ private:
         }
     }
 };
+struct tree_replace {
+    tree *a;
+    tree *b;
+};
+struct tree_replaces {
+    tree_replace* replaces;
+    int max;
+};
+struct operation {
+    char* name;
+    tree_replace* replace;
+};
 struct parser_answer {
     int pos;
     tree* tr;
 };
+strings* explode(const char* src,char sym=' ') {
+    unsigned int i=0;
+    unsigned int smax=strlen(src)-1;
+    strings* res=new strings;
+    res->strs=new char*[smax];
+    res->max=0;
+    char* prevs=NULL,*temp=NULL;
+    while(i<=(smax+1)) {
+        if(src[i]==sym||i>smax) {
+            if(prevs!=NULL) {
+                res->strs[(res->max)++]=prevs;
+                prevs=NULL;
+            }
+        }
+        else {
+            temp=new char[2];
+            temp[0]=src[i];
+            temp[1]='\0';
+            prevs=stradd(prevs,temp);
+        }
+        i++;
+    }
+    res->max--;
+    return(res);
+}
 lexer_answer* lexer(char* str) {
     //print_str(str);
     int i=0;
@@ -870,7 +928,7 @@ lexer_answer* lexer(char* str) {
         }
         else {
             if((currentstate!=CHAR_TBR2)&&(currentstate!=CHAR_TBR1)&&(currentstate!=CHAR_TOP)&&(laststate==currentstate)) {
-                aa=new char[1];
+                aa=new char[2];
                 aa[0]=current;
                 aa[1]='\0';
                 temp=stradd(temp,aa);
@@ -880,7 +938,7 @@ lexer_answer* lexer(char* str) {
                     if(current=='_') {
                         current='^';
                     }
-                    result[i].c=new char[strlen(temp)-1];
+                    result[i].c=new char[strlen(temp)];
                     result[i].t=laststate;
                     strcpy(result[i].c,temp);
                     result[i].c=result[i].c;
@@ -890,7 +948,7 @@ lexer_answer* lexer(char* str) {
                     i++;
                 }
                 if(current!='\0') {
-                    temp=new char[1];
+                    temp=new char[2];
                     temp[0]=current;
                     temp[1]='\0';
                     aa=NULL;
@@ -1082,6 +1140,68 @@ tree* parse(char* src) {
     }
     return(b.tr->copymem());
 }
+class function {
+private:
+    //if name is not NULL function is valid
+    char* name;
+    char* var;
+    tree *derivative;
+    tree *integral;
+public:
+    function():name(NULL),var(NULL),derivative(NULL),integral(NULL){}
+    function(const char* string) {
+        //name var derivative integral)
+        //- if no der./int.
+        strings* expl=explode(string);
+        if(expl->max<3) {
+            name=NULL;
+        }
+        else {
+            name=expl->strs[0];
+            //print_str(expl);
+            var=expl->strs[1];
+            derivative=str(expl->strs[2],MATH_NO)?NULL:parse(expl->strs[2]);
+            integral=str(expl->strs[3],MATH_NO)?NULL:parse(expl->strs[3]);
+            if((!str(expl->strs[2],MATH_NO)&&derivative==NULL)||(!str(expl->strs[3],MATH_NO)&&integral==NULL)) {
+                name=NULL;
+            }
+        }
+    }
+    void print() {
+        if(name!=NULL) {
+            cerr << "function " << name <<"(" << var << "):" << endl;
+            cerr << " derivative: " << derivative->display() << endl;
+            cerr << " integral: " << integral->display() << endl;
+        }
+    }
+};
+class functions {
+private:
+    int max;
+    function* arr;
+public:
+    functions(strings* src) {
+        int i=0;
+        max=src->max;
+        arr=new function[src->max+1];
+        while(i<=src->max) {
+            arr[i]=function(src->strs[i]);
+            i++;
+        }
+    }
+};
+functions* funcs=NULL;
+/*const char* MATH_SIN="sin";
+const char* MATH_COS="cos";
+const char* MATH_TG="tg";
+const char* MATH_ERF="erf";
+const char* MATH_EXP="exp";
+const char* MATH_LN="ln";
+const char* MATH_SQRT="sqrt";
+const char* MATH_ARCSIN="arcsin";
+const char* MATH_ARCCOS="arccos";
+const char* MATH_ABS="abs";
+const char* MATH_ARCTG="arctg";*/
 char* display(char* src,int type=TREE_DMATH) {
     tree* tree2=parse(src);
     return(tree2==NULL?NULL:(tree2->test()?tree2->display(type):NULL));
@@ -1123,6 +1243,9 @@ Diff::~Diff()
     delete ui;
 };
 void Diff::on_button_diff_clicked() {
+    const char* as="sin x cos(x) -cos(x)";
+    function sin(as);
+    sin.print();
     QString a;
     char* result=diff(ui->line_src->toPlainText().toAscii().data(),ui->line_base->text().toAscii().data());
     if(result==NULL) {
@@ -1146,6 +1269,13 @@ void Diff::on_button_integral_clicked() {
     ui->line_dest->setPlainText(a);
 }
 void Diff::on_button_easy_clicked() {
+    //loop diff for tests
+    /*int i=0;
+    while(true) {
+        cerr << i;
+        ui->button_diff->click();
+        i++;
+    }*/
     QString a;
     char* result=easy(ui->line_src->toPlainText().toAscii().data());
     if(result==NULL) {
