@@ -17,6 +17,7 @@ protected:
     void changeEvent(QEvent *e);
 
 private slots:
+    void on_button_parse_clicked();
     void on_button_diff_clicked();
     void on_button_show_clicked();
     void on_button_easy_clicked();

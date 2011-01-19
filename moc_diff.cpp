@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'diff.h'
 **
-** Created: Mon Dec 13 22:40:50 2010
+** Created: Wed Jan 19 19:53:49 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.6.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_Diff[] = {
        4,       // revision
        0,       // classname
        0,    0, // classinfo
-       4,   14, // methods
+       5,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,15 +32,17 @@ static const uint qt_meta_data_Diff[] = {
 
  // slots: signature, parameters, type, tag, flags
        6,    5,    5,    5, 0x08,
-      31,    5,    5,    5, 0x08,
-      56,    5,    5,    5, 0x08,
-      81,    5,    5,    5, 0x08,
+      32,    5,    5,    5, 0x08,
+      57,    5,    5,    5, 0x08,
+      82,    5,    5,    5, 0x08,
+     107,    5,    5,    5, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Diff[] = {
-    "Diff\0\0on_button_diff_clicked()\0"
+    "Diff\0\0on_button_parse_clicked()\0"
+    "on_button_diff_clicked()\0"
     "on_button_show_clicked()\0"
     "on_button_easy_clicked()\0"
     "on_button_integral_clicked()\0"
@@ -75,13 +77,14 @@ int Diff::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: on_button_diff_clicked(); break;
-        case 1: on_button_show_clicked(); break;
-        case 2: on_button_easy_clicked(); break;
-        case 3: on_button_integral_clicked(); break;
+        case 0: on_button_parse_clicked(); break;
+        case 1: on_button_diff_clicked(); break;
+        case 2: on_button_show_clicked(); break;
+        case 3: on_button_easy_clicked(); break;
+        case 4: on_button_integral_clicked(); break;
         default: ;
         }
-        _id -= 4;
+        _id -= 5;
     }
     return _id;
 }

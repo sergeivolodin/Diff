@@ -51,7 +51,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab_main">
      <attribute name="title">
@@ -235,20 +235,68 @@
      <attribute name="title">
       <string>Settings</string>
      </attribute>
-     <widget class="QLabel" name="label_3">
+     <widget class="QPlainTextEdit" name="plainTextEdit">
       <property name="geometry">
        <rect>
-        <x>270</x>
-        <y>200</y>
-        <width>81</width>
-        <height>16</height>
+        <x>0</x>
+        <y>0</y>
+        <width>631</width>
+        <height>341</height>
+       </rect>
+      </property>
+      <property name="plainText">
+       <string>sin(x) 1 cos(x)
+cos(x) 1 -sin(x)
+tg(x) 1 1/(cos(x)^2)
+ctg(x) 1 -1/(sin(x)^2)
+sec(x) 1 sin(x)/(cos(x)^2)
+cosec(x) 1 -cos(x)/(sin(x)^2)
+sin(x) 2 -cos(x)
+cos(x) 2 sin(x)
+tg(x) 2 -ln(abs(cos(x)))
+ctg(x) 2 ln(abs(sin(x)))
+sec(x) 2 ln(abs(tg((pi/4)+(x/2))))
+cosec(x) 2 ln(abs(tg(x/2)))
+exp(x) 1 exp(x)
+exp(x) 2 exp(x)
+ln(x) 1 1/x
+sqrt(x) 1 1/(2*sqrt(x))
+erf(x) 1 (2/sqrt(pi))*e^(-(x^2))
+arcsin(x) 1 1/sqrt(1-(x^2))
+arccos(x) 1 -1/sqrt(1-(x^2))
+arctg(x) 1 1/(1+(x^2))
+arcctg(x) 1 -1/(1+(x^2))
+arcsin(x) 2 x*arcsin(x)+sqrt(1-(x^2))
+arccos(x) 2 x*arccos(x)-sqrt(1-(x^2))
+arctg(x) 2 x*arctg(x)-ln(1+(x^2))/2
+arcctg(x) 2 x*arcctg(x)+ln(1+(x^2))/2
+abs(x) 1 diff(sqrt(x)^2)
+integral(x) 2 integral(sqrt(x)^2)
+x+y 1 diff(x)+diff(y)
+x-y 1 diff(x)-diff(y)
+x*y 1 diff(x)*y+x*diff(y)
+x/y 1 (diff(x)*y-x*diff(y))/(y^2)
+x^y 1 diff(exp(ln(f(x))*g(x)))
+x+y 2 integral(x)+integral(y)
+x-y 2 integral(x)-integral(y)
+-(x) 1 -diff(x)
+-(x) 2 -integral(x)
+f(g(x)) 1 diff(g(x))*diff(f(y))|y=g(x)
+x 1 1
+a 1 0</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_parse">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>350</y>
+        <width>611</width>
+        <height>61</height>
        </rect>
       </property>
       <property name="text">
-       <string>Coming soon</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+       <string>Parse</string>
       </property>
      </widget>
     </widget>

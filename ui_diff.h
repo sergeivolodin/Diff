@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Fri Jan 7 20:57:31 2011
+** Created: Wed Jan 19 20:31:18 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -54,7 +54,8 @@ public:
     QLabel *label;
     QLineEdit *line_base;
     QWidget *tab_settings;
-    QLabel *label_3;
+    QPlainTextEdit *plainTextEdit;
+    QPushButton *button_parse;
     QLabel *label_2;
     QMenuBar *menuBar;
     QMenu *menuDiff;
@@ -177,10 +178,12 @@ public:
         tabWidget->addTab(tab_main, QString());
         tab_settings = new QWidget();
         tab_settings->setObjectName(QString::fromUtf8("tab_settings"));
-        label_3 = new QLabel(tab_settings);
-        label_3->setObjectName(QString::fromUtf8("label_3"));
-        label_3->setGeometry(QRect(270, 200, 81, 16));
-        label_3->setAlignment(Qt::AlignCenter);
+        plainTextEdit = new QPlainTextEdit(tab_settings);
+        plainTextEdit->setObjectName(QString::fromUtf8("plainTextEdit"));
+        plainTextEdit->setGeometry(QRect(0, 0, 631, 341));
+        button_parse = new QPushButton(tab_settings);
+        button_parse->setObjectName(QString::fromUtf8("button_parse"));
+        button_parse->setGeometry(QRect(10, 350, 611, 61));
         tabWidget->addTab(tab_settings, QString());
         label_2 = new QLabel(centralWidget);
         label_2->setObjectName(QString::fromUtf8("label_2"));
@@ -200,7 +203,7 @@ public:
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(1);
 
 
         QMetaObject::connectSlotsByName(Diff);
@@ -221,7 +224,47 @@ public:
         label->setText(QApplication::translate("Diff", "Base", 0, QApplication::UnicodeUTF8));
         line_base->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_main), QApplication::translate("Diff", "Main", 0, QApplication::UnicodeUTF8));
-        label_3->setText(QApplication::translate("Diff", "Coming soon", 0, QApplication::UnicodeUTF8));
+        plainTextEdit->setPlainText(QApplication::translate("Diff", "sin(x) 1 cos(x)\n"
+"cos(x) 1 -sin(x)\n"
+"tg(x) 1 1/(cos(x)^2)\n"
+"ctg(x) 1 -1/(sin(x)^2)\n"
+"sec(x) 1 sin(x)/(cos(x)^2)\n"
+"cosec(x) 1 -cos(x)/(sin(x)^2)\n"
+"sin(x) 2 -cos(x)\n"
+"cos(x) 2 sin(x)\n"
+"tg(x) 2 -ln(abs(cos(x)))\n"
+"ctg(x) 2 ln(abs(sin(x)))\n"
+"sec(x) 2 ln(abs(tg((pi/4)+(x/2))))\n"
+"cosec(x) 2 ln(abs(tg(x/2)))\n"
+"exp(x) 1 exp(x)\n"
+"exp(x) 2 exp(x)\n"
+"ln(x) 1 1/x\n"
+"sqrt(x) 1 1/(2*sqrt(x))\n"
+"erf(x) 1 (2/sqrt(pi))*e^(-(x^2))\n"
+"arcsin(x) 1 1/sqrt(1-(x^2))\n"
+"arccos(x) 1 -1/sqrt(1-(x^2))\n"
+"arctg(x) 1 1/(1+(x^2))\n"
+"arcctg(x) 1 -1/(1+(x^2))\n"
+"arcsin(x) 2 x*arcsin(x)+sqrt(1-(x^2))\n"
+"arccos(x) 2 x*arccos(x)-sqrt(1-(x^2))\n"
+"arctg(x) 2 x*arctg(x)-ln(1+(x^2))/2\n"
+"arcctg(x) 2 x*arcctg(x)+ln(1+(x^2))/2\n"
+"abs(x) 1 diff(sqrt(x)^2)\n"
+"integral(x) 2 integral(sqrt(x)^2)\n"
+"x+y 1 diff(x)+diff(y)\n"
+"x-y 1 diff(x)-diff(y)\n"
+"x*y 1 diff(x)*y+x*diff(y)\n"
+"x/y 1 (diff(x)*y-x*diff(y))/(y^2)\n"
+"x^y 1 diff(exp(ln(f(x))*g(x)))\n"
+"x+y 2 integral(x)+integral(y)\n"
+"x-y 2 integral(x)-integral(y)\n"
+""
+                        "-(x) 1 -diff(x)\n"
+"-(x) 2 -integral(x)\n"
+"f(g(x)) 1 diff(g(x))*diff(f(y))|y=g(x)\n"
+"x 1 1\n"
+"a 1 0", 0, QApplication::UnicodeUTF8));
+        button_parse->setText(QApplication::translate("Diff", "Parse", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_settings), QApplication::translate("Diff", "Settings", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("Diff", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

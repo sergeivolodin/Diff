@@ -8,6 +8,7 @@
 #include <string.h>
 #include <strings.h>
 /*
+  lexer_normal fails.
   diff table: functions, operations
   custom operations
   new functions (api), documenation
@@ -16,6 +17,10 @@
   tree::type() leaf-0,unary-1,binary-2
   diff table: add !contents (x) - for integrals, also parsing (add '!' to variant of letters;
     operator== in trees: add order change for it.
+  */
+/*
+  segfault in (lg(x)^2)^2-3*lg(x)-1
+   (lexer_normal problem)
   */
 using namespace std;
 bool is_integer(const float a) {
@@ -97,6 +102,10 @@ struct strings {
     int max;
 };
 //strings
+const int TREE_TLEAF=0;
+const int TREE_TUNARY=1;
+const int TREE_TBINARY=2;
+const int TREE_TFUNCTION=3;
 const char* ERROR="Error.";
 const char* MATH_BR1="(";
 const char* MATH_BR2=")";
@@ -417,6 +426,46 @@ private:
             }
         }
         return(true);
+    }
+    int type() {
+        //leaf-0;unary-1;binary-2;function-3
+        if(leaf==true) {
+            return(TREE_TLEAF);
+        }
+        else {
+            if(b==NULL) {
+                //?x
+                if(char_islett(value[0])) {
+                    //f(x)
+                    return(TREE_TFUNCTION);
+                }
+                else {
+                    //[op]x
+                    return(TREE_TUNARY);
+                }
+            }
+            else {
+                //x+y
+                return(TREE_TBINARY);
+            }
+        }
+    }
+    tree* diff_new(const char* base) {
+        tree* nt=NULL;
+        int ctype=type();
+        if(ctype==TREE_TLEAF) {
+
+        }
+        else if(ctype==TREE_TUNARY) {
+
+        }
+        else if(ctype==TREE_TBINARY) {
+
+        }
+        else if(ctype==TREE_TFUNCTION) {
+
+        }
+        return(nt);
     }
     tree* diff(const char* base) {
         tree* nt=NULL;
@@ -779,13 +828,13 @@ private:
                 }
                 if(str(value,MATH_SUB)) {
                     //dont change order!
-                    if(atof(nt->a->value)==0&&char_isnum_m(nt->a->value[0])) {
+                    if(atof(nt->a->value)==0&&char_isnum_m(nt->a->value[0])&&nt->a->leaf) {
                         rt=new tree(MATH_SUB,nt->b);
                     }
-                    if(atof(nt->b->value)==0&&char_isnum_m(nt->b->value[0])) {
+                    if(atof(nt->b->value)==0&&char_isnum_m(nt->b->value[0])&&nt->b->leaf) {
                         rt=nt->a->copymem();
                     }
-                    if(char_isnum_m(nt->a->value[0])&&char_isnum_m(nt->b->value[0])) {
+                    if(char_isnum_m(nt->a->value[0])&&char_isnum_m(nt->b->value[0])&&nt->a->leaf&&nt->b->leaf) {
                         char* h=print_num(atof(nt->a->value)-atof(nt->b->value));
                         rt=new tree(h);
                     }
@@ -854,28 +903,21 @@ private:
         }
     }
 };
-struct tree_replace {
-    tree *a;
-    tree *b;
-};
-struct tree_replaces {
-    tree_replace* replaces;
-    int max;
-};
-struct operation {
-    char* name;
-    tree_replace* replace;
-};
 struct parser_answer {
     int pos;
     tree* tr;
 };
 strings* explode(const char* src,char sym=' ') {
     unsigned int i=0;
-    unsigned int smax=strlen(src)-1;
     strings* res=new strings;
-    res->strs=new char*[smax];
+    res->max=-1;
+    unsigned int smax=strlen(src)-1;
+    //cerr << "[" << smax << "]";
+    if(smax==0||src==NULL||strlen(src)<=1) {
+        return(res);
+    }
     res->max=0;
+    res->strs=new char*[smax];
     char* prevs=NULL,*temp=NULL;
     while(i<=(smax+1)) {
         if(src[i]==sym||i>smax) {
@@ -974,7 +1016,7 @@ lexer_answer* lexer_normal(lexer_answer* src) {
         res->result[ri].t=src->result[i].t;
         ri++;
         if(i<src->max) {
-            if(src->result[i].t==CHAR_TNUM&&src->result[i+1].t==CHAR_TLETT) {
+            if(src->result[i].t==CHAR_TNUM&&(src->result[i].c)[0]!='-'&&src->result[i+1].t==CHAR_TLETT) {
                 res->result[ri].t=CHAR_TOP;
                 res->result[ri].c=mul;
                 ri++;
@@ -982,7 +1024,7 @@ lexer_answer* lexer_normal(lexer_answer* src) {
                 res->result[ri].c=src->result[i].c;
                 res->result[ri].t=src->result[i].t;
                 ri++;
-                if(src->result[i+2].t==CHAR_TNUM) {
+                if(src->result[i+2].t==CHAR_TNUM&&(src->result[i+2].c)[0]!='-') {
                     res->result[ri].t=CHAR_TOP;
                     res->result[ri].c=pow;
                     ri++;
@@ -993,7 +1035,7 @@ lexer_answer* lexer_normal(lexer_answer* src) {
                 }
             }
             //repeat.
-            if(src->result[i].t==CHAR_TLETT&&src->result[i+1].t==CHAR_TNUM) {
+            if(src->result[i].t==CHAR_TLETT&&src->result[i+1].t==CHAR_TNUM&&(src->result[i+1].c)[0]!='-') {
                 res->result[ri].t=CHAR_TOP;
                 res->result[ri].c=pow;
                 ri++;
@@ -1026,7 +1068,7 @@ int op_prio(char* a) {
     //its prio is smaller
     return(def);
 }
-parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
+parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true,bool minus_to_plus=false) {
     tree* rtree=NULL;
     parser_answer result,tmpres,tmpres1,tmpres2;
     result.pos=pos;
@@ -1036,13 +1078,16 @@ parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pri
         //first operand
         tmpres=parser(src,pos,false);
         if(src->result[tmpres.pos].t==CHAR_TOP) {
+            if(minus_to_plus&&src->result[tmpres.pos].c==MATH_SUB) {
+                src->result[tmpres.pos].c=strcp(MATH_ADD);
+            }
             //its binary
-            if(op_prio(src->result[tmpres.pos].c)>=parent_prio) {
+            if(op_prio(src->result[tmpres.pos].c)>parent_prio) {
                 //if current prio is bigger than parent prio
                 tmpres1=parser(src,tmpres.pos+1,true,op_prio(src->result[tmpres.pos].c),false);
                 if((src->result[tmpres1.pos].t==CHAR_TOP)&&sub_allow) {
                     //if sub_recursion allowed AND next sym is operation
-                    tmpres2=parser(src,tmpres1.pos+1,true);
+                    tmpres2=parser(src,tmpres1.pos+1,true,0,true,true);
                     rtree=new tree(new tree(tmpres.tr,src->result[tmpres.pos].c,tmpres1.tr),src->result[tmpres1.pos].c,tmpres2.tr);
                     result.pos=tmpres2.pos;
                     ok=true;
@@ -1140,68 +1185,87 @@ tree* parse(char* src) {
     }
     return(b.tr->copymem());
 }
-class function {
+class funcrule {
 private:
-    //if name is not NULL function is valid
-    char* name;
-    char* var;
-    tree *derivative;
-    tree *integral;
+    tree* src;
+    int operation; //1-diff,2-integral
+    tree* dest;
 public:
-    function():name(NULL),var(NULL),derivative(NULL),integral(NULL){}
-    function(const char* string) {
-        //name var derivative integral)
+    funcrule():src(NULL),operation(0),dest(NULL){}
+    funcrule(const char* string) {
+        //sin(x) 1 cos(x)
+        //)
         //- if no der./int.
         strings* expl=explode(string);
-        if(expl->max<3) {
-            name=NULL;
+        if(expl->max<2) {
+            cerr << "-0-";
+            operation=0;
         }
         else {
-            name=expl->strs[0];
-            //print_str(expl);
-            var=expl->strs[1];
-            derivative=str(expl->strs[2],MATH_NO)?NULL:parse(expl->strs[2]);
-            integral=str(expl->strs[3],MATH_NO)?NULL:parse(expl->strs[3]);
-            if((!str(expl->strs[2],MATH_NO)&&derivative==NULL)||(!str(expl->strs[3],MATH_NO)&&integral==NULL)) {
-                name=NULL;
+            src=parse(expl->strs[0]);
+            operation=atoi(expl->strs[1]);
+            dest=parse(expl->strs[2]);
+            if(src==NULL||dest==NULL||operation<1||operation>2) {
+                operation=0;
             }
         }
     }
+    inline bool valid() {return(operation>0);}
     void print() {
-        if(name!=NULL) {
-            cerr << "function " << name <<"(" << var << "):" << endl;
-            cerr << " derivative: " << derivative->display() << endl;
-            cerr << " integral: " << integral->display() << endl;
+        if(operation!=0) {
+            if(operation==1) {
+                cerr << "diff";
+            }
+            else {
+                cerr << "integral";
+            }
+            cerr << "(" << src->display() << ")=" << dest->display() << endl;
         }
     }
 };
-class functions {
+class operation {
 private:
-    int max;
-    function* arr;
+    bool commutative; //x!y=x!y
+    bool associative; //x!(y!z)=(x!y)!z
+    char* distributive; //x!(y%z)=x!y%x!z
 public:
-    functions(strings* src) {
+    operation(bool commutative_in,bool associative_in,char* distributive_in):commutative(commutative_in),associative(associative_in),distributive(distributive_in) {}
+};
+
+class funcrules {
+private:
+    funcrule** data;
+    int max;
+public:
+    funcrules():data(NULL),max(-1){}
+    funcrules(const char* string) {
+        int i=0,w=0;
+        max=-1;
+        strings* expl=explode(string,10);
+        if(expl->max>-1) {
+            max=expl->max;
+            data=new funcrule*[expl->max+1];
+            while(i<=expl->max) {
+                //cerr << "creating " << expl->strs[i] << endl;
+                data[w++]=new funcrule(expl->strs[i]);
+                if(!(data[w-1]->valid())) {
+                    w--;
+                }
+                i++;
+            }
+            max=w-1;
+        }
+    }
+    void printall() {
         int i=0;
-        max=src->max;
-        arr=new function[src->max+1];
-        while(i<=src->max) {
-            arr[i]=function(src->strs[i]);
+        while(i<=max) {
+            data[i]->print();
             i++;
         }
     }
 };
-functions* funcs=NULL;
-/*const char* MATH_SIN="sin";
-const char* MATH_COS="cos";
-const char* MATH_TG="tg";
-const char* MATH_ERF="erf";
-const char* MATH_EXP="exp";
-const char* MATH_LN="ln";
-const char* MATH_SQRT="sqrt";
-const char* MATH_ARCSIN="arcsin";
-const char* MATH_ARCCOS="arccos";
-const char* MATH_ABS="abs";
-const char* MATH_ARCTG="arctg";*/
+/*sin,cos,tg,erf,exp,ln,sqrt,arcsin,arccos,abs,arctg,*/
+funcrules* FUNCRULES;
 char* display(char* src,int type=TREE_DMATH) {
     tree* tree2=parse(src);
     return(tree2==NULL?NULL:(tree2->test()?tree2->display(type):NULL));
@@ -1243,9 +1307,6 @@ Diff::~Diff()
     delete ui;
 };
 void Diff::on_button_diff_clicked() {
-    const char* as="sin x cos(x) -cos(x)";
-    function sin(as);
-    sin.print();
     QString a;
     char* result=diff(ui->line_src->toPlainText().toAscii().data(),ui->line_base->text().toAscii().data());
     if(result==NULL) {
@@ -1255,6 +1316,10 @@ void Diff::on_button_diff_clicked() {
         a=result;
     }
     ui->line_dest->setPlainText(a);
+}
+void Diff::on_button_parse_clicked() {
+    FUNCRULES=new funcrules(ui->plainTextEdit->toPlainText().toAscii().data());
+    FUNCRULES->printall();
 }
 void Diff::on_button_integral_clicked() {
     QString a;
@@ -1286,7 +1351,6 @@ void Diff::on_button_easy_clicked() {
     }
     ui->line_dest->setPlainText(a);
 }
-
 void Diff::on_button_show_clicked() {
     QString a;
     char* result=display(ui->line_src->toPlainText().toAscii().data());
