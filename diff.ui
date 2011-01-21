@@ -51,7 +51,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="tab_main">
      <attribute name="title">
@@ -240,7 +240,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>631</width>
+        <width>261</width>
         <height>341</height>
        </rect>
       </property>
@@ -270,18 +270,17 @@ arcsin(x) 2 x*arcsin(x)+sqrt(1-(x^2))
 arccos(x) 2 x*arccos(x)-sqrt(1-(x^2))
 arctg(x) 2 x*arctg(x)-ln(1+(x^2))/2
 arcctg(x) 2 x*arcctg(x)+ln(1+(x^2))/2
-abs(x) 1 diff(sqrt(x)^2)
-integral(x) 2 integral(sqrt(x)^2)
-x+y 1 diff(x)+diff(y)
-x-y 1 diff(x)-diff(y)
-x*y 1 diff(x)*y+x*diff(y)
-x/y 1 (diff(x)*y-x*diff(y))/(y^2)
-x^y 1 diff(exp(ln(f(x))*g(x)))
-x+y 2 integral(x)+integral(y)
-x-y 2 integral(x)-integral(y)
--(x) 1 -diff(x)
--(x) 2 -integral(x)
-f(g(x)) 1 diff(g(x))*diff(f(y))|y=g(x)
+abs(f) 1 diff(sqrt(f)^2)
+f+g 1 diff(f)+diff(g)
+f-g 1 diff(f)-diff(g)
+f*g 1 diff(f)*g+f*diff(g)
+f/g 1 (diff(f)*g-f*diff(g))/(g^2)
+f^g 1 diff(exp(ln(f)*g))
+f+g 2 integral(f)+integral(g)
+f-g 2 integral(f)-integral(g)
+-f 1 -diff(f)
+-f 2 -integral(f)
+f(g) 1 diff(g)*diff(f(y))|y=g
 x 1 1
 a 1 0</string>
       </property>
@@ -297,6 +296,109 @@ a 1 0</string>
       </property>
       <property name="text">
        <string>Parse</string>
+      </property>
+     </widget>
+     <widget class="QPlainTextEdit" name="plainTextEdit_2">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>0</y>
+        <width>371</width>
+        <height>341</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::NoFrame</enum>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+      <property name="plainText">
+       <string>Write your rules in left field.
+Invalid lines will be ignored.
+
+f,g,h - any functions with variables and numbers
+x,y,z - variables 'x'...; nums
+a,b,c - numbers
+
+...|var=val. for future repl. [ex. diff(g)*diff(f(y))|y=g]</string>
+      </property>
+      <property name="textInteractionFlags">
+       <set>Qt::NoTextInteraction</set>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Testing</string>
+     </attribute>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>52</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Equal</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>52</width>
+        <height>13</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pattern</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>110</y>
+        <width>321</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Test it</string>
+      </property>
+     </widget>
+     <widget class="QPlainTextEdit" name="teste">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>30</y>
+        <width>271</width>
+        <height>31</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPlainTextEdit" name="testp">
+      <property name="geometry">
+       <rect>
+        <x>60</x>
+        <y>70</y>
+        <width>271</width>
+        <height>31</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPlainTextEdit" name="testr">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>160</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
       </property>
      </widget>
     </widget>

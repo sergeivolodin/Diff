@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Wed Jan 19 20:31:18 2011
+** Created: Fri Jan 21 19:08:42 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -56,6 +56,14 @@ public:
     QWidget *tab_settings;
     QPlainTextEdit *plainTextEdit;
     QPushButton *button_parse;
+    QPlainTextEdit *plainTextEdit_2;
+    QWidget *tab;
+    QLabel *label_3;
+    QLabel *label_4;
+    QPushButton *pushButton;
+    QPlainTextEdit *teste;
+    QPlainTextEdit *testp;
+    QPlainTextEdit *testr;
     QLabel *label_2;
     QMenuBar *menuBar;
     QMenu *menuDiff;
@@ -180,11 +188,38 @@ public:
         tab_settings->setObjectName(QString::fromUtf8("tab_settings"));
         plainTextEdit = new QPlainTextEdit(tab_settings);
         plainTextEdit->setObjectName(QString::fromUtf8("plainTextEdit"));
-        plainTextEdit->setGeometry(QRect(0, 0, 631, 341));
+        plainTextEdit->setGeometry(QRect(0, 0, 261, 341));
         button_parse = new QPushButton(tab_settings);
         button_parse->setObjectName(QString::fromUtf8("button_parse"));
         button_parse->setGeometry(QRect(10, 350, 611, 61));
+        plainTextEdit_2 = new QPlainTextEdit(tab_settings);
+        plainTextEdit_2->setObjectName(QString::fromUtf8("plainTextEdit_2"));
+        plainTextEdit_2->setGeometry(QRect(260, 0, 371, 341));
+        plainTextEdit_2->setFrameShape(QFrame::NoFrame);
+        plainTextEdit_2->setReadOnly(true);
+        plainTextEdit_2->setTextInteractionFlags(Qt::NoTextInteraction);
         tabWidget->addTab(tab_settings, QString());
+        tab = new QWidget();
+        tab->setObjectName(QString::fromUtf8("tab"));
+        label_3 = new QLabel(tab);
+        label_3->setObjectName(QString::fromUtf8("label_3"));
+        label_3->setGeometry(QRect(10, 30, 52, 16));
+        label_4 = new QLabel(tab);
+        label_4->setObjectName(QString::fromUtf8("label_4"));
+        label_4->setGeometry(QRect(10, 70, 52, 13));
+        pushButton = new QPushButton(tab);
+        pushButton->setObjectName(QString::fromUtf8("pushButton"));
+        pushButton->setGeometry(QRect(10, 110, 321, 41));
+        teste = new QPlainTextEdit(tab);
+        teste->setObjectName(QString::fromUtf8("teste"));
+        teste->setGeometry(QRect(60, 30, 271, 31));
+        testp = new QPlainTextEdit(tab);
+        testp->setObjectName(QString::fromUtf8("testp"));
+        testp->setGeometry(QRect(60, 70, 271, 31));
+        testr = new QPlainTextEdit(tab);
+        testr->setObjectName(QString::fromUtf8("testr"));
+        testr->setGeometry(QRect(10, 160, 111, 31));
+        tabWidget->addTab(tab, QString());
         label_2 = new QLabel(centralWidget);
         label_2->setObjectName(QString::fromUtf8("label_2"));
         label_2->setGeometry(QRect(0, 445, 61, 16));
@@ -203,7 +238,7 @@ public:
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(Diff);
@@ -249,23 +284,34 @@ public:
 "arccos(x) 2 x*arccos(x)-sqrt(1-(x^2))\n"
 "arctg(x) 2 x*arctg(x)-ln(1+(x^2))/2\n"
 "arcctg(x) 2 x*arcctg(x)+ln(1+(x^2))/2\n"
-"abs(x) 1 diff(sqrt(x)^2)\n"
-"integral(x) 2 integral(sqrt(x)^2)\n"
-"x+y 1 diff(x)+diff(y)\n"
-"x-y 1 diff(x)-diff(y)\n"
-"x*y 1 diff(x)*y+x*diff(y)\n"
-"x/y 1 (diff(x)*y-x*diff(y))/(y^2)\n"
-"x^y 1 diff(exp(ln(f(x))*g(x)))\n"
-"x+y 2 integral(x)+integral(y)\n"
-"x-y 2 integral(x)-integral(y)\n"
-""
-                        "-(x) 1 -diff(x)\n"
-"-(x) 2 -integral(x)\n"
-"f(g(x)) 1 diff(g(x))*diff(f(y))|y=g(x)\n"
+"abs(f) 1 diff(sqrt(f)^2)\n"
+"f+g 1 diff(f)+diff(g)\n"
+"f-g 1 diff(f)-diff(g)\n"
+"f*g 1 diff(f)*g+f*diff(g)\n"
+"f/g 1 (diff(f)*g-f*diff(g))/(g^2)\n"
+"f^g 1 diff(exp(ln(f)*g))\n"
+"f+g 2 integral(f)+integral(g)\n"
+"f-g 2 integral(f)-integral(g)\n"
+"-f 1 -diff(f)\n"
+"-f 2 -integral(f)\n"
+"f(g"
+                        ") 1 diff(g)*diff(f(y))|y=g\n"
 "x 1 1\n"
 "a 1 0", 0, QApplication::UnicodeUTF8));
         button_parse->setText(QApplication::translate("Diff", "Parse", 0, QApplication::UnicodeUTF8));
+        plainTextEdit_2->setPlainText(QApplication::translate("Diff", "Write your rules in left field.\n"
+"Invalid lines will be ignored.\n"
+"\n"
+"f,g,h - any functions with variables and numbers\n"
+"x,y,z - variables 'x'...; nums\n"
+"a,b,c - numbers\n"
+"\n"
+"...|var=val. for future repl. [ex. diff(g)*diff(f(y))|y=g]", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_settings), QApplication::translate("Diff", "Settings", 0, QApplication::UnicodeUTF8));
+        label_3->setText(QApplication::translate("Diff", "Equal", 0, QApplication::UnicodeUTF8));
+        label_4->setText(QApplication::translate("Diff", "Pattern", 0, QApplication::UnicodeUTF8));
+        pushButton->setText(QApplication::translate("Diff", "Test it", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("Diff", "Testing", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("Diff", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

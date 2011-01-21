@@ -8,14 +8,14 @@
 #include <string.h>
 #include <strings.h>
 /*
-  lexer_normal fails.
+  lexer_normal FAILS.
   diff table: functions, operations
   custom operations
   new functions (api), documenation
   */
 /*
   tree::type() leaf-0,unary-1,binary-2
-  diff table: add !contents (x) - for integrals, also parsing (add '!' to variant of letters;
+  diff table: add !contains (x) - for integrals, also parsing (add '!' to variant of letters;
     operator== in trees: add order change for it.
   */
 /*
@@ -101,17 +101,27 @@ struct strings {
     char** strs;
     int max;
 };
+bool strchar(const char* h,const char* n) {
+    if(strlen(n)>1) {
+        return(false);
+    }
+    unsigned int i=0;
+    while((h[i]!='\0')&&(h[i]!=n[0])) {
+        i++;
+    }
+    return(i!=strlen(h));
+}
+
 //strings
-const int TREE_TLEAF=0;
-const int TREE_TUNARY=1;
-const int TREE_TBINARY=2;
-const int TREE_TFUNCTION=3;
 const char* ERROR="Error.";
 const char* MATH_BR1="(";
 const char* MATH_BR2=")";
 const char* MATH_INTEGRAL_ADDC="+C";
 const char* MATH_NADD="%2B";
 const char* MATH_NO="-";
+const char* MATH_NUMS="abc";
+const char* MATH_VARS="xyz";
+const char* MATH_FUNCS="fgh";
 //constans
 const char* MATH_PI="pi";
 const char* MATH_M1="-1";
@@ -142,8 +152,16 @@ const char* MATH_POW1="_";
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
 const int TREE_DNIGMA=2;
-const int TREE_DDEFAULT=TREE_DMATH;
+const int TREE_ADEF=0;
+const int TREE_ASYM=1;
+const int TREE_TNUM=0;
+const int TREE_TVAR=4;
+const int TREE_TUNARY=1;
+const int TREE_TBINARY=2;
+const int TREE_TFUNCTION=3;
 const char* TREE_NIGMA="http://math3.nigma.ru/maxima2/drivermath.php?render=$";
+//tree settings
+const int TREE_DDEFAULT=TREE_DMATH;
 char* char_replace(char* src,char a,char b) {
     char* result=new char[strlen(src)];
     int i=0;
@@ -293,6 +311,10 @@ private:
         }
         return(res);
     }
+    int type_sym() {
+        //???
+        //if(type==)
+    }
     char* display_tree(int level=0) {
         const char* sym=":";
         char* res;
@@ -392,19 +414,90 @@ private:
     inline bool isleaf() {
         return(leaf);
     }
+    bool pattern(tree* spattern,const char* base=MATH_DEFDIFF) {
+        if((*this)==(*spattern)) {
+            return(true);
+        }
+        int ctype=type();
+        int stype=spattern->type();
+        //tree types:num/var/unary/binary/function
+        if(stype==ctype) {
+            cerr << "type==" << endl;
+            //types equal, so lets test sub-trees.
+            if(ctype==TREE_TNUM) {
+                //current is num. pattern can be [number, var or function]
+                if(strchar(MATH_NUMS,spattern->value)||strchar(MATH_VARS,spattern->value)||strchar(MATH_FUNCS,spattern->value)) {
+                    return(true);
+                }
+            }
+            if(ctype==TREE_TVAR) {
+                //cerr << "var";
+                //current is var. pattern can be [var or function]
+                if(strchar(MATH_VARS,spattern->value)||strchar(MATH_FUNCS,spattern->value)) {
+                    if(base!=NULL) {
+                        if(str(value,base)) {
+                            return(true);
+                        }
+                    }
+                }
+            }
+            if(ctype==TREE_TFUNCTION) {
+                //current is function. pattern can be [number, var or function]
+                if(strchar(MATH_FUNCS,spattern->value)) {
+                    return(true);
+                }
+            }
+            if(ctype==TREE_TUNARY) {
+                if(str(value,spattern->value)) {
+                    //-(x),-(f)
+                    return(a->pattern(spattern->a,base));
+                }
+            }
+            if(ctype==TREE_TBINARY) {
+                //commutative operations support will be added later
+                //2-level commutative changing will be unuseful here
+                if(str(value,spattern->value)) {
+                    //x+y,f+g
+                    return(a->pattern(spattern->a,base)&&b->pattern(spattern->b,base));
+                }
+            }
+        }
+        else {
+            if(stype==TREE_TVAR) {
+                if(strchar(MATH_FUNCS,spattern->value)) {
+                    return(true);
+                }
+                if(strchar(MATH_NUMS,spattern->value)) {
+                    tree* num=new tree("a");
+                    if(ctype==TREE_TBINARY) {
+                        //a and b contains ONLY numbers
+                        return((!a->contains(base))&&(!b->contains(base)));
+                    }
+                    if(ctype==TREE_TUNARY||ctype==TREE_TFUNCTION) {
+                        //b contains ONLY numbers
+                        return(!(a->contains(base)));
+                    }
+                    if(ctype==TREE_TNUM) {
+                        return(true);
+                    }
+                }
+            }
+        }
+        return(false);
+    }
     char* getvalue() {
         return(value);
     }
-    bool contents(const char* src) {
+    bool contains(const char* src) {
         if(leaf) {
             return(str(src,value));
         }
         else {
             if(b==NULL) {
-                return(a->contents(src));
+                return(a->contains(src));
             }
             else {
-                return(a->contents(src)||b->contents(src));
+                return(a->contains(src)||b->contains(src));
             }
         }
     }
@@ -428,9 +521,13 @@ private:
         return(true);
     }
     int type() {
-        //leaf-0;unary-1;binary-2;function-3
-        if(leaf==true) {
-            return(TREE_TLEAF);
+        if(leaf) {
+            if(char_isnum_m(value[0])) {
+                return(TREE_TNUM);
+            }
+            else {
+                return(TREE_TVAR);
+            }
         }
         else {
             if(b==NULL) {
@@ -453,18 +550,7 @@ private:
     tree* diff_new(const char* base) {
         tree* nt=NULL;
         int ctype=type();
-        if(ctype==TREE_TLEAF) {
 
-        }
-        else if(ctype==TREE_TUNARY) {
-
-        }
-        else if(ctype==TREE_TBINARY) {
-
-        }
-        else if(ctype==TREE_TFUNCTION) {
-
-        }
         return(nt);
     }
     tree* diff(const char* base) {
@@ -545,7 +631,7 @@ private:
                 }
                 if(str(value,MATH_POW)) {
                     tree* tmp;
-                    if(b->contents(base)||!(a->leaf&&str(a->value,base))) {
+                    if(b->contains(base)||!(a->leaf&&str(a->value,base))) {
                         tmp=new tree(MATH_EXP,new tree(new tree(MATH_LN,a),MATH_MUL,b));
                         nt=tmp->diff(base);
                     }
@@ -559,6 +645,9 @@ private:
     }
     bool operator==(tree sec) {
         //bool tmp=false;
+        /*if(value==NULL||sec.value==NULL) {
+            return(false);
+        }*/
         if(!str(value,sec.value)) {
             return(false);
         }
@@ -617,7 +706,7 @@ private:
             if(str(value,base)) {
                 rt=new tree(new tree(base,MATH_POW,MATH_2),MATH_DIV,new tree(MATH_2));
             }
-            if(!contents(base)) {
+            if(!contains(base)) {
                 rt=new tree(value,MATH_MUL,base);
             }
         }
@@ -642,7 +731,7 @@ private:
                         rt=new tree(MATH_EXP,base);
                     }
                 }
-                if(!contents(base)) {
+                if(!contains(base)) {
                     rt=new tree(this,MATH_MUL,new tree(base));
                 }
             }
@@ -659,7 +748,7 @@ private:
                 //power
                 if(str(value,MATH_POW)) {
                     //x^a
-                    if(str(a->value,base)&&!b->contents(base)&&b->leaf) {
+                    if(str(a->value,base)&&!b->contains(base)&&b->leaf) {
                         if(str(b->value,"-1")) {
                             rt=new tree(MATH_LN,new tree(MATH_ABS,base));
                         }
@@ -667,19 +756,19 @@ private:
                             rt=new tree(new tree(new tree(base),MATH_POW,new tree(b,MATH_ADD,new tree(MATH_1))),MATH_DIV,new tree(b,MATH_ADD,new tree(MATH_1)));
                         }
                     }
-                    if(!a->contents(base)&&b->contents(base)&&b->leaf) {
+                    if(!a->contains(base)&&b->contains(base)&&b->leaf) {
                         rt=new tree(new tree(a,MATH_POW,new tree(base)),MATH_DIV,new tree(MATH_LN,a));
                     }
                 }
                 //mult.
                 if(str(value,MATH_MUL)) {
-                    if(!(a->contents(base))) {
+                    if(!(a->contains(base))) {
                         tb=b->integral(base);
                         if(tb!=NULL) {
                             rt=new tree(a,MATH_MUL,tb);
                         }
                     }
-                    if(!(b->contents(base))) {
+                    if(!(b->contains(base))) {
                         ta=a->integral(base);
                         if(ta!=NULL) {
                             rt=new tree(ta,MATH_MUL,b);
@@ -688,7 +777,7 @@ private:
                 }
                 //division
                 if(str(value,MATH_DIV)) {
-                    if(!b->contents(base)) {
+                    if(!b->contains(base)) {
                         rt=new tree(a->integral(base),MATH_DIV,b);
                     }
                 }
@@ -1148,7 +1237,7 @@ parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pri
             tmpres=parser(src,pos+2);
             result.pos=tmpres.pos+1;
             if(src->result[tmpres.pos].t==CHAR_TBR2) {
-                //cerr << "Function parse called, new position is " << result.pos << " (it contents [" << src->result[tmpres.pos+1].c  << "])" << endl;
+                //cerr << "Function parse called, new position is " << result.pos << " (it contains [" << src->result[tmpres.pos+1].c  << "])" << endl;
                 rtree=new tree(src->result[pos].c,tmpres.tr);
             }
             else {
@@ -1361,6 +1450,23 @@ void Diff::on_button_show_clicked() {
         a=result;
     }
     ui->line_dest->setPlainText(a);
+}
+void Diff::on_pushButton_clicked() {
+    QString a;
+    tree* x=parse(ui->teste->toPlainText().toAscii().data()),*y=parse(ui->testp->toPlainText().toAscii().data());
+    if(x!=NULL&&y!=NULL) {
+        cerr << "testing [" << x->display() << "] with [" << y->display() << "]" << endl;
+        if(x->pattern(y)) {
+            a="yes";
+        }
+        else {
+            a="no";
+        }
+    }
+    else {
+        a="error";
+    }
+    ui->testr->setPlainText(a);
 }
 void Diff::changeEvent(QEvent *e)
 {
