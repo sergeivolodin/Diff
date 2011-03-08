@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Thu Mar 3 18:38:59 2011
+** Created: Tue Mar 8 21:15:22 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -318,7 +318,7 @@ public:
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(Diff);
@@ -336,6 +336,7 @@ public:
         button_show->setText(QApplication::translate("Diff", "Show", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("Diff", "Result:", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("Diff", "Equal:", 0, QApplication::UnicodeUTF8));
+        line_src->setPlainText(QApplication::translate("Diff", "sin(cos(x))", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("Diff", "Base", 0, QApplication::UnicodeUTF8));
         line_base->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_main), QApplication::translate("Diff", "Main", 0, QApplication::UnicodeUTF8));

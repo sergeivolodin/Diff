@@ -193,7 +193,7 @@ const char* MATH_INTEGRAL_ADDC="+C";
 const char* MATH_NO="-";
 //math variables for rules
 char* MATH_NUMS="abcde";
-char* MATH_VARS="xy";
+char* MATH_VARS="xyz";
 char* MATH_FUNCS="fgh";
 //constans
 const char* MATH_DEFDIFF="x";
@@ -809,10 +809,10 @@ tree* parse(char* src) {
     return(b.tr->copymem());
 }
 bool pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF) {
-    cerr << "pattern from [" << stree->display() << "] to [" << spattern->display() << "]" << endl;
-    cerr << "funcs=" << MATH_FUNCS << endl;
-    cerr << "vars=" << MATH_VARS << endl;
-    cerr << "nums=" << MATH_NUMS << endl;
+    //cerr << "pattern from [" << stree->display() << "] to [" << spattern->display() << "]" << endl;
+    //cerr << "funcs=" << MATH_FUNCS << endl;
+    //cerr << "vars=" << MATH_VARS << endl;
+    //cerr << "nums=" << MATH_NUMS << endl;
     //need in sin(x) with sin(x), not f
     if((*stree)==(*spattern)) {
         return(true);
@@ -821,88 +821,88 @@ bool pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF) {
     int ptype=spattern->type();
     //tree types:num/var/unary/binary/function
     if(ptype==ttype) {
-        cerr << "pattern type ==" << endl;
+        //cerr << "pattern type ==" << endl;
         //types equal, so lets test sub-trees.
         if(ttype==TREE_TNUM) {
-            cerr << "pattern num ";
+            //cerr << "pattern num ";
             //current is num. pattern can be [axf]
             if(strchar(MATH_NUMS,spattern->getvalue())||strchar(MATH_VARS,spattern->getvalue())||strchar(MATH_FUNCS,spattern->getvalue())) {
-                cerr << "ok" << endl;
+                //cerr << "ok" << endl;
                 return(true);
             }
         }
         if(ttype==TREE_TVAR) {
             //cerr << "var";
             //current is var. pattern can be [var or function]
-            cerr << "pattern var ";
+            //cerr << "pattern var ";
             if(strchar(MATH_VARS,spattern->getvalue())||strchar(MATH_FUNCS,spattern->getvalue())) {
                 if(str(stree->getvalue(),base)) {
-                    cerr << "ok (pattern: var/funcs)" << endl;
+                    //cerr << "ok (pattern: var/funcs)" << endl;
                     return(true);
                 }
             }
             //for 'y' when base is x
             if(strchar(MATH_NUMS,spattern->getvalue())) {
                 if(!str(stree->getvalue(),base)) {
-                    cerr << "ok (pattern: othervar)" << endl;
+                    //cerr << "ok (pattern: othervar)" << endl;
                     return(true);
                 }
             }
         }
         if(ttype==TREE_TFUNCTION) {
             //current is function. pattern can be [number, var or function]
-            cerr << "pattern function ";
+            //cerr << "pattern function ";
             if((str(spattern->getvalue(),stree->getvalue()))||strchar(MATH_FUNCS,spattern->getvalue())) {
                 //same function OR 'f' pattern, go inside
-                cerr << "ok" << endl;
+                //cerr << "ok" << endl;
                 return(pattern(stree->geta(),spattern->geta(),base));
             }
             else {
-                cerr << "[" <<  MATH_FUNCS << ", " <<  spattern->getvalue() << "]" << endl ;
+                //cerr << "[" <<  MATH_FUNCS << ", " <<  spattern->getvalue() << "]" << endl ;
             }
         }
         if(ttype==TREE_TUNARY) {
-            cerr << "pattern unary ";
+            //cerr << "pattern unary ";
             if(str(stree->getvalue(),spattern->getvalue())) {
                 //-(x),-(f)
                 //same operation, go inside
-                cerr << "inside..." << endl;
+                //cerr << "inside..." << endl;
                 return(pattern(stree->geta(),spattern->geta(),base));
             }
         }
         if(ttype==TREE_TBINARY) {
             //commutative operations support will be added later
             //2-level commutative changing will be unuseful here
-            cerr << "pattern binary ";
+            //cerr << "pattern binary ";
             if(str(stree->getvalue(),spattern->getvalue())) {
                 //x+y,f+g
-                cerr << "inside..." << endl;
+                //cerr << "inside..." << endl;
                 return(pattern(stree->geta(),spattern->geta(),base)&&pattern(stree->getb(),spattern->getb(),base));
             }
         }
     }
     else {
-        cerr << "pattern type !=" << endl;
+        //cerr << "pattern type !=" << endl;
         if(ptype==TREE_TVAR) {
-            cerr << "var patern... ";
+            //cerr << "var patern... ";
             if(strchar(MATH_FUNCS,spattern->getvalue())) {
-                cerr << "ok (pattern=function)" << endl;
+                //cerr << "ok (pattern=function)" << endl;
                 return(true);
             }
             if(strchar(MATH_NUMS,spattern->getvalue())) {
-                cerr << "pattern=num. testing stree: ";
+                //cerr << "pattern=num. testing stree: ";
                 if(ttype==TREE_TBINARY) {
-                    cerr << "binary tree. go inside... " << endl;
+                    //cerr << "binary tree. go inside... " << endl;
                     //a and b contains ONLY numbers
                     return((!stree->geta()->contains(base))&&(!stree->getb()->contains(base)));
                 }
                 if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) {
-                    cerr << "function/unary tree. go inside... " << endl;
+                    //cerr << "function/unary tree. go inside... " << endl;
                     //b contains ONLY numbers
                     return(!(stree->geta()->contains(base)));
                 }
                 if(ttype==TREE_TNUM) {
-                    cerr << "num tree. ok" << endl;
+                    //cerr << "num tree. ok" << endl;
                     return(true);
                 }
             }
@@ -954,7 +954,7 @@ replacers* getreplacers(tree* stree,tree* spattern,const char* base=MATH_DEFDIFF
     replacers* crepl=NULL;
     int fcount=pattern_count_funcs(spattern);
     if(fcount==0||(!pattern(stree,spattern,base))) {
-        cerr << "getreplacers: !pattern";
+        //cerr << "getreplacers: !pattern";
         return(crepl);
     }
     if(areplacers==NULL) {
@@ -969,30 +969,30 @@ replacers* getreplacers(tree* stree,tree* spattern,const char* base=MATH_DEFDIFF
     int ptype=spattern->type();
     //
     if(ptype==TREE_TBINARY) {
-        cerr << "getreplacers_binary from" << spattern->getvalue() << endl;
+        //cerr << "getreplacers_binary from" << spattern->getvalue() << endl;
         //pattern matches tree, so only extracting variables
         getreplacers(stree->geta(),spattern->geta(),base,crepl);
         getreplacers(stree->getb(),spattern->getb(),base,crepl);
     }
     if(ptype==TREE_TUNARY) {
-        cerr << "getreplacers_unary from" << spattern->getvalue() << endl;
+        //cerr << "getreplacers_unary from" << spattern->getvalue() << endl;
         getreplacers(stree->geta(),spattern->geta(),base,crepl);
     }
     if(ptype==TREE_TFUNCTION) {
         //f(g)=>any function from anything
         //if f then write f=[fvalue] else only inside
-        cerr << "getreplacers_function from" << spattern->getvalue() << endl;
+        //cerr << "getreplacers_function from" << spattern->getvalue() << endl;
         if(strchar(MATH_FUNCS,spattern->getvalue())&&(getreplacer(crepl,spattern->getvalue(),-1)==NULL)) {
             crepl->r[crepl->maxindex]=new replacer;
             crepl->r[crepl->maxindex]->l=strcp(spattern->getvalue());
-            cerr << "!!!![adding from function " << spattern->getvalue() << "=" << stree->getvalue() << "]" << endl;
+          //  cerr << "!!!![adding from function " << spattern->getvalue() << "=" << stree->getvalue() << "]" << endl;
             crepl->r[crepl->maxindex]->r=new tree(strcp(stree->getvalue()));
             crepl->maxindex++;
         }
         getreplacers(stree->geta(),spattern->geta(),base,crepl);
     }
     if(ptype==TREE_TVAR) {
-        cerr << "getreplacers_var from" << spattern->getvalue() << endl;
+        //cerr << "getreplacers_var from" << spattern->getvalue() << endl;
         if(strchar(MATH_FUNCS,spattern->getvalue())&&(getreplacer(crepl,spattern->getvalue(),-1)==NULL)) {
             crepl->r[crepl->maxindex]=new replacer;
             crepl->r[crepl->maxindex]->l=strcp(spattern->getvalue());
@@ -1050,7 +1050,7 @@ tree* replace(tree* spattern,replacers* srepl) {
         }
     }
     if(stype==TREE_TBINARY) {
-        cerr << "replace-binary-b=" << spattern->getb()->display();
+        //cerr << "replace-binary-b=" << spattern->getb()->display();
         rtree=new tree(replace(spattern->geta(),srepl),spattern->getvalue(),replace(spattern->getb(),srepl));
     }
     return(rtree);
@@ -1082,7 +1082,7 @@ rule* parsestr(char* str) {
         if(l==NULL||l->max==-1) {
             return(NULL);
         }
-        cerr << "parsestr_nopostrepl (" << str << ") l-max [" << l->max << "]" << endl;
+        //cerr << "parsestr_nopostrepl (" << str << ") l-max [" << l->max << "]" << endl;
     }
     else if(t->max==1) {
         l=explode(t->strs[0],MATH_CCOMMOND);
@@ -1090,7 +1090,7 @@ rule* parsestr(char* str) {
         if(l==NULL||r==NULL||l->max==-1||r->max==-1) {
             return(NULL);
         }
-                cerr << "parsestr_postrepl (" << str << ") l-max=" << l->max << ", " << "r-max=" << r->max << endl;
+                //cerr << "parsestr_postrepl (" << str << ") l-max=" << l->max << ", " << "r-max=" << r->max << endl;
         if(r->max>=0) {
             prepl=new replacers;
             prepl->r=new replacer*[r->max+1];
@@ -1103,7 +1103,7 @@ rule* parsestr(char* str) {
                     ttree=parse(tmp->strs[1]);
                     if(ttree!=NULL) {
                         prepl->r[rcount]->r=ttree;
-                        cerr << "adding " << prepl->r[rcount]->l << "=" << prepl->r[rcount]->r->display() << endl;
+                        //cerr << "adding " << prepl->r[rcount]->l << "=" << prepl->r[rcount]->r->display() << endl;
                         rcount++;
                     }
                 }
@@ -1120,16 +1120,16 @@ rule* parsestr(char* str) {
         res->op=atoi(l->strs[1]);
         res->dest=parse(l->strs[2]);
         if(res->src==NULL) {
-            cerr << "tree from res->src (" << l->strs[0] << ") == NULL" << endl;
+            //cerr << "tree from res->src (" << l->strs[0] << ") == NULL" << endl;
         }
         if(res->dest==NULL) {
-            cerr << "tree from res->src (" << l->strs[3] << ") == NULL" << endl;
+            //cerr << "tree from res->src (" << l->strs[3] << ") == NULL" << endl;
         }
         if(res->src==NULL||res->dest==NULL) {
-            cerr << "NULL parse tree" << endl;
+            //cerr << "NULL parse tree" << endl;
             return(NULL);
         }
-        cerr << "tree ok" << endl;
+//        /cerr << "tree ok" << endl;
         return(res);
     }
     return(NULL);
@@ -1149,7 +1149,7 @@ rules* parsestrs(char* str) {
         if(tempr!=NULL) {
             res->r[c]=tempr;
             if(tempr->postrepl!=NULL&&tempr->postrepl->r[0]!=NULL) {
-                cerr << "0repl " << tempr->postrepl->r[0]->l << "=" << tempr->postrepl->r[0]->r->display() << endl;
+                //cerr << "0repl " << tempr->postrepl->r[0]->l << "=" << tempr->postrepl->r[0]->r->display() << endl;
             }
             c++;
         }
@@ -1190,15 +1190,35 @@ void printrules(rules* a) {
 rules* FRULES=NULL;
 tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crules=FRULES,bool rmode=false) {
     int i=0,type=0;
-    char* name=NULL, *tmp=new char[2]; tmp[1]='\n';
-    replacers* tmprepl=NULL;
+    char* name=NULL, *tmp=NULL;
+    replacers* tmprepl=NULL,*newrepl=NULL;
     if(!rmode) {
         if(FRULES!=NULL) {
             while(i<=FRULES->maxindex) {
                 if(pattern(src,FRULES->r[i]->src,base)&&FRULES->r[i]->op==operation) {
-                    tmprepl=getreplacers(src,FRULES->r[i]->src,base);
+                    if(!str(base,"x")) {
+                        newrepl=new replacers;
+                        newrepl->maxindex=0;
+                        newrepl->r=new replacer*[1];
+                        newrepl->r[0]=new replacer;
+                        newrepl->r[0]->l="x";
+                        newrepl->r[0]->r=new tree(base);
+                    }
+                    else {
+                        newrepl=NULL;
+                    }
+                    tmprepl=getreplacers(src,replace(FRULES->r[i]->src,newrepl),base);
                     //return(replace(replace(operate(replace(FRULES->r[i]->dest,tmprepl),operation,base,crules,true),FRULES->r[i]->postrepl),tmprepl));
-                    return(replace(operate(replace(FRULES->r[i]->dest,tmprepl),operation,base,crules,true),FRULES->r[i]->postrepl));
+                    //tmprepl - replacers to src
+                    /*cerr << endl << src->display() << " matched with " << FRULES->r[i]->src->display() << " at " << base << endl;
+                    cerr << " 0_src=" << FRULES->r[i]->dest->display() << endl;
+                    cerr << " 1_replace=" << replace(FRULES->r[i]->dest,tmprepl)->display() << endl;
+                    cerr << " 2_operate=" << operate(replace(FRULES->r[i]->dest,tmprepl),operation,base,crules,true)->display() << endl;
+                    cerr << " 3_replace=" << replace(operate(replace(FRULES->r[i]->dest,tmprepl),operation,base,crules,true),FRULES->r[i]->postrepl)->display() << endl;
+                    cerr << " 4_replace=" << replace(replace(operate(replace(FRULES->r[i]->dest,tmprepl),operation,base,crules,true),FRULES->r[i]->postrepl),tmprepl)->display() << endl;*/
+
+                    // FFFFFFFFFFUUUUUUUUUUUUUUUUUUUUUUUUUU......
+                    return(replace(replace(operate(replace(replace(FRULES->r[i]->dest,newrepl),tmprepl),operation,base,crules,true),FRULES->r[i]->postrepl),tmprepl));
                 }
                 i++;
             }
@@ -1220,19 +1240,19 @@ tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crule
             if(str(MATH_OPLIST[operation-1],src->getvalue())) {
                 return(operate(src->geta(),operation,base,crules));
             }
-            /*while(i<strlen(MATH_VARS)) {
+            while(i<strlen(MATH_VARS)) {
                 tmp=new char[2];
                 tmp[0]=MATH_VARS[i];
-                tmp[1]='\n';
+                tmp[1]='\0';
                 name=MATH_OPLIST[operation-1];
-                //name=stradd(name,tmp);
+                name=stradd(name,tmp);
                 cerr << name << endl;
                 if(str(name,src->getvalue())) {
-                    return(operate(src->geta(),operation,"y",crules));
+                    return(operate(src->geta(),operation,tmp,crules));
                 }
                 i++;
             }
-            */return(new tree(src->getvalue(),operate(src->geta(),operation,base,crules,true)));
+            return(new tree(src->getvalue(),operate(src->geta(),operation,base,crules,true)));
         }
     }
 }
@@ -1273,7 +1293,7 @@ void Diff::on_button_diff_clicked() {
 void Diff::on_button_parse_clicked() {
     //settings
     FRULES=parsestrs(ui->plainTextEdit->toPlainText().toAscii().data());
-    printrules(FRULES);
+    //printrules(FRULES);
 //    MATH_NUMS=ui->mnums->text().toAscii().data();
  //   MATH_VARS=ui->mvars->text().toAscii().data();
    // MATH_FUNCS=ui->mall->text().toAscii().data();

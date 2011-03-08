@@ -51,7 +51,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_main">
      <attribute name="title">
@@ -191,6 +191,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="plainText">
+        <string>sin(cos(x))</string>
        </property>
       </widget>
      </widget>
