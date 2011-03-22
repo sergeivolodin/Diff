@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Tue Mar 8 21:15:22 2011
+** Created: Tue Mar 22 19:21:10 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -34,7 +34,6 @@ class Ui_Diff
 {
 public:
     QAction *actionExit;
-    QAction *actionAbout;
     QWidget *centralWidget;
     QTabWidget *tabWidget;
     QWidget *tab_main;
@@ -63,10 +62,18 @@ public:
     QLabel *label_5;
     QLabel *label_6;
     QLabel *label_7;
+    QLabel *label_9;
+    QLabel *label_10;
+    QLabel *label_11;
+    QLabel *label_12;
     QVBoxLayout *verticalLayout_3;
     QLineEdit *mall;
     QLineEdit *mvars;
     QLineEdit *mnums;
+    QLineEdit *mops;
+    QLineEdit *mrepl;
+    QLineEdit *mvar0;
+    QLineEdit *mops1;
     QWidget *tab;
     QLabel *label_3;
     QLabel *label_4;
@@ -78,7 +85,10 @@ public:
     QLabel *label_8;
     QPlainTextEdit *testr1;
     QPlainTextEdit *testr_2;
-    QPushButton *pushButton_2;
+    QWidget *tab_2;
+    QLineEdit *testv_src;
+    QPlainTextEdit *testv_dest;
+    QPushButton *testv_button;
     QLabel *label_2;
     QMenuBar *menuBar;
     QMenu *menuDiff;
@@ -98,8 +108,6 @@ public:
         Diff->setFocusPolicy(Qt::TabFocus);
         actionExit = new QAction(Diff);
         actionExit->setObjectName(QString::fromUtf8("actionExit"));
-        actionAbout = new QAction(Diff);
-        actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
         centralWidget = new QWidget(Diff);
         centralWidget->setObjectName(QString::fromUtf8("centralWidget"));
         sizePolicy.setHeightForWidth(centralWidget->sizePolicy().hasHeightForWidth());
@@ -174,7 +182,7 @@ public:
         line_src->setSizePolicy(sizePolicy2);
         verticalLayoutWidget_2 = new QWidget(tab_main);
         verticalLayoutWidget_2->setObjectName(QString::fromUtf8("verticalLayoutWidget_2"));
-        verticalLayoutWidget_2->setGeometry(QRect(0, 150, 151, 31));
+        verticalLayoutWidget_2->setGeometry(QRect(0, 170, 156, 31));
         verticalLayout_2 = new QVBoxLayout(verticalLayoutWidget_2);
         verticalLayout_2->setSpacing(6);
         verticalLayout_2->setContentsMargins(11, 11, 11, 11);
@@ -203,19 +211,19 @@ public:
         tab_settings->setObjectName(QString::fromUtf8("tab_settings"));
         plainTextEdit = new QPlainTextEdit(tab_settings);
         plainTextEdit->setObjectName(QString::fromUtf8("plainTextEdit"));
-        plainTextEdit->setGeometry(QRect(0, 0, 261, 341));
+        plainTextEdit->setGeometry(QRect(0, 0, 261, 351));
         button_parse = new QPushButton(tab_settings);
         button_parse->setObjectName(QString::fromUtf8("button_parse"));
-        button_parse->setGeometry(QRect(10, 350, 611, 61));
+        button_parse->setGeometry(QRect(10, 360, 251, 51));
         plainTextEdit_2 = new QPlainTextEdit(tab_settings);
         plainTextEdit_2->setObjectName(QString::fromUtf8("plainTextEdit_2"));
-        plainTextEdit_2->setGeometry(QRect(260, 0, 371, 91));
+        plainTextEdit_2->setGeometry(QRect(260, 0, 371, 271));
         plainTextEdit_2->setFrameShape(QFrame::NoFrame);
         plainTextEdit_2->setReadOnly(true);
         plainTextEdit_2->setTextInteractionFlags(Qt::NoTextInteraction);
         horizontalLayoutWidget = new QWidget(tab_settings);
         horizontalLayoutWidget->setObjectName(QString::fromUtf8("horizontalLayoutWidget"));
-        horizontalLayoutWidget->setGeometry(QRect(270, 90, 160, 80));
+        horizontalLayoutWidget->setGeometry(QRect(470, 230, 160, 180));
         horizontalLayout = new QHBoxLayout(horizontalLayoutWidget);
         horizontalLayout->setSpacing(6);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
@@ -239,6 +247,26 @@ public:
 
         verticalLayout->addWidget(label_7);
 
+        label_9 = new QLabel(horizontalLayoutWidget);
+        label_9->setObjectName(QString::fromUtf8("label_9"));
+
+        verticalLayout->addWidget(label_9);
+
+        label_10 = new QLabel(horizontalLayoutWidget);
+        label_10->setObjectName(QString::fromUtf8("label_10"));
+
+        verticalLayout->addWidget(label_10);
+
+        label_11 = new QLabel(horizontalLayoutWidget);
+        label_11->setObjectName(QString::fromUtf8("label_11"));
+
+        verticalLayout->addWidget(label_11);
+
+        label_12 = new QLabel(horizontalLayoutWidget);
+        label_12->setObjectName(QString::fromUtf8("label_12"));
+
+        verticalLayout->addWidget(label_12);
+
 
         horizontalLayout->addLayout(verticalLayout);
 
@@ -260,6 +288,26 @@ public:
 
         verticalLayout_3->addWidget(mnums);
 
+        mops = new QLineEdit(horizontalLayoutWidget);
+        mops->setObjectName(QString::fromUtf8("mops"));
+
+        verticalLayout_3->addWidget(mops);
+
+        mrepl = new QLineEdit(horizontalLayoutWidget);
+        mrepl->setObjectName(QString::fromUtf8("mrepl"));
+
+        verticalLayout_3->addWidget(mrepl);
+
+        mvar0 = new QLineEdit(horizontalLayoutWidget);
+        mvar0->setObjectName(QString::fromUtf8("mvar0"));
+
+        verticalLayout_3->addWidget(mvar0);
+
+        mops1 = new QLineEdit(horizontalLayoutWidget);
+        mops1->setObjectName(QString::fromUtf8("mops1"));
+
+        verticalLayout_3->addWidget(mops1);
+
 
         horizontalLayout->addLayout(verticalLayout_3);
 
@@ -277,10 +325,10 @@ public:
         pushButton->setGeometry(QRect(10, 150, 321, 41));
         teste = new QPlainTextEdit(tab);
         teste->setObjectName(QString::fromUtf8("teste"));
-        teste->setGeometry(QRect(60, 30, 271, 31));
+        teste->setGeometry(QRect(70, 30, 271, 31));
         testp = new QPlainTextEdit(tab);
         testp->setObjectName(QString::fromUtf8("testp"));
-        testp->setGeometry(QRect(60, 70, 271, 31));
+        testp->setGeometry(QRect(70, 70, 271, 31));
         testr = new QPlainTextEdit(tab);
         testr->setObjectName(QString::fromUtf8("testr"));
         testr->setGeometry(QRect(10, 200, 111, 31));
@@ -289,17 +337,26 @@ public:
         mreplacers->setGeometry(QRect(140, 200, 331, 171));
         label_8 = new QLabel(tab);
         label_8->setObjectName(QString::fromUtf8("label_8"));
-        label_8->setGeometry(QRect(10, 110, 44, 12));
+        label_8->setGeometry(QRect(10, 110, 61, 16));
         testr1 = new QPlainTextEdit(tab);
         testr1->setObjectName(QString::fromUtf8("testr1"));
-        testr1->setGeometry(QRect(340, 20, 251, 161));
+        testr1->setGeometry(QRect(350, 20, 251, 161));
         testr_2 = new QPlainTextEdit(tab);
         testr_2->setObjectName(QString::fromUtf8("testr_2"));
-        testr_2->setGeometry(QRect(60, 110, 271, 31));
-        pushButton_2 = new QPushButton(tab);
-        pushButton_2->setObjectName(QString::fromUtf8("pushButton_2"));
-        pushButton_2->setGeometry(QRect(490, 200, 141, 201));
+        testr_2->setGeometry(QRect(70, 110, 271, 31));
         tabWidget->addTab(tab, QString());
+        tab_2 = new QWidget();
+        tab_2->setObjectName(QString::fromUtf8("tab_2"));
+        testv_src = new QLineEdit(tab_2);
+        testv_src->setObjectName(QString::fromUtf8("testv_src"));
+        testv_src->setGeometry(QRect(0, 10, 291, 41));
+        testv_dest = new QPlainTextEdit(tab_2);
+        testv_dest->setObjectName(QString::fromUtf8("testv_dest"));
+        testv_dest->setGeometry(QRect(0, 60, 431, 351));
+        testv_button = new QPushButton(tab_2);
+        testv_button->setObjectName(QString::fromUtf8("testv_button"));
+        testv_button->setGeometry(QRect(300, 10, 131, 41));
+        tabWidget->addTab(tab_2, QString());
         label_2 = new QLabel(centralWidget);
         label_2->setObjectName(QString::fromUtf8("label_2"));
         label_2->setGeometry(QRect(0, 445, 61, 16));
@@ -318,7 +375,7 @@ public:
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
 
-        tabWidget->setCurrentIndex(0);
+        tabWidget->setCurrentIndex(2);
 
 
         QMetaObject::connectSlotsByName(Diff);
@@ -327,19 +384,18 @@ public:
     void retranslateUi(QMainWindow *Diff)
     {
         Diff->setWindowTitle(QApplication::translate("Diff", "Diff", 0, QApplication::UnicodeUTF8));
-        actionExit->setText(QApplication::translate("Diff", "Exit", 0, QApplication::UnicodeUTF8));
+        actionExit->setText(QApplication::translate("Diff", "\320\222\321\213\321\205\320\276\320\264", 0, QApplication::UnicodeUTF8));
         actionExit->setShortcut(QApplication::translate("Diff", "Alt+Q", 0, QApplication::UnicodeUTF8));
-        actionAbout->setText(QApplication::translate("Diff", "About", 0, QApplication::UnicodeUTF8));
-        button_diff->setText(QApplication::translate("Diff", "Derivative", 0, QApplication::UnicodeUTF8));
-        button_integral->setText(QApplication::translate("Diff", "Integral", 0, QApplication::UnicodeUTF8));
-        button_easy->setText(QApplication::translate("Diff", "Easy", 0, QApplication::UnicodeUTF8));
-        button_show->setText(QApplication::translate("Diff", "Show", 0, QApplication::UnicodeUTF8));
-        groupBox_2->setTitle(QApplication::translate("Diff", "Result:", 0, QApplication::UnicodeUTF8));
-        groupBox->setTitle(QApplication::translate("Diff", "Equal:", 0, QApplication::UnicodeUTF8));
-        line_src->setPlainText(QApplication::translate("Diff", "sin(cos(x))", 0, QApplication::UnicodeUTF8));
-        label->setText(QApplication::translate("Diff", "Base", 0, QApplication::UnicodeUTF8));
+        button_diff->setText(QApplication::translate("Diff", "\320\237\321\200\320\276\320\270\320\267\320\262\320\276\320\264\320\275\320\260\321\217", 0, QApplication::UnicodeUTF8));
+        button_integral->setText(QApplication::translate("Diff", "\320\230\320\275\321\202\320\265\320\263\321\200\320\260\320\273", 0, QApplication::UnicodeUTF8));
+        button_easy->setText(QApplication::translate("Diff", "\320\243\320\277\321\200\320\276\321\201\321\202\320\270\321\202\321\214", 0, QApplication::UnicodeUTF8));
+        button_show->setText(QApplication::translate("Diff", "\320\237\320\276\320\272\320\260\320\267\320\260\321\202\321\214", 0, QApplication::UnicodeUTF8));
+        groupBox_2->setTitle(QApplication::translate("Diff", "\320\240\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202:", 0, QApplication::UnicodeUTF8));
+        groupBox->setTitle(QApplication::translate("Diff", "\320\222\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265:", 0, QApplication::UnicodeUTF8));
+        line_src->setPlainText(QApplication::translate("Diff", "sin(cos(x))+1/x", 0, QApplication::UnicodeUTF8));
+        label->setText(QApplication::translate("Diff", "\320\236\321\201\320\275\320\276\320\262\320\260\320\275\320\270\320\265", 0, QApplication::UnicodeUTF8));
         line_base->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
-        tabWidget->setTabText(tabWidget->indexOf(tab_main), QApplication::translate("Diff", "Main", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(tab_main), QApplication::translate("Diff", "\320\236\321\201\320\275\320\276\320\262\320\275\320\276\320\265 \320\276\320\272\320\275\320\276", 0, QApplication::UnicodeUTF8));
         plainTextEdit->setPlainText(QApplication::translate("Diff", "sin(x) 1 cos(x)\n"
 "cos(x) 1 -sin(x)\n"
 "tg(x) 1 1/(cos(x)^2)\n"
@@ -376,37 +432,82 @@ public:
 "-f 1 -diff(f)\n"
 "-f 2 -integral(f)\n"
 "f(g"
-                        ") 1 diff(g)*diffy(f(y))|y=g\n"
+                        ") 1 diff(g)*diffm(f(m))|m=g\n"
 "x 1 1\n"
-"a 1 0", 0, QApplication::UnicodeUTF8));
-        button_parse->setText(QApplication::translate("Diff", "Parse", 0, QApplication::UnicodeUTF8));
-        plainTextEdit_2->setPlainText(QApplication::translate("Diff", "Write your rules in left field.\n"
-"Invalid lines will be ignored.\n"
+"a 1 0\n"
+"0*f 0 0\n"
+"f*0 0 0\n"
+"0+f 0 f\n"
+"f+0 0 f\n"
+"f-0 0 f\n"
+"0-f 0 -f\n"
+"0/f 0 0\n"
+"f^1 0 f\n"
+"f^0 0 1\n"
+"f^-g 0 1/f^g\n"
+"f+g 0 g+f\n"
+"f*g 0 g*f\n"
+"f*(g+h) 0 f*g+f*h\n"
+"f*g+f*h 0 f*(g+h)\n"
+"(f+g)+h 0 f+(g+h)\n"
+"f+(g+h) 0 (f+g)+h\n"
+"(f*g)*h 0 f*(g*h)\n"
+"f*(g*h) 0 (f*g)*h\n"
+"f+(-g) 0 f-g\n"
+"f^2+g^2+2*f*g 0 (f+g)^2\n"
+"f^2+g^2-2*f*g 0 (f-g)^2\n"
+"(f-g)*(f+g) 0 f^2-g^2\n"
+"f+f 0 2*f\n"
+"a*f+b*f 0 (a+b)*f\n"
+"a*f+f 0 (a+1)*f", 0, QApplication::UnicodeUTF8));
+        button_parse->setText(QApplication::translate("Diff", "\320\237\321\200\320\270\320\274\320\265\320\275\320\270\321\202\321\214", 0, QApplication::UnicodeUTF8));
+        plainTextEdit_2->setPlainText(QApplication::translate("Diff", "\320\237\320\270\321\210\320\270\321\202\320\265 \320\277\321\200\320\260\320\262\320\270\320\273\320\260 \320\262 \320\277\320\276\320\273\320\265 \321\201\320\273\320\265\320\262\320\260.\n"
+"\320\235\320\265\320\277\321\200\320\260\320\262\320\270\320\273\321\214\320\275\321\213\320\265 \320\261\321\203\320\264\321\203\321\202 \320\277\321\200\320\276\320\270\320\263\320\275\320\276\321\200\320\270\321\200\320\276\320\262\320\260\320\275\321\213\n"
 "\n"
-"format: src [operation: 1 for diff, 2 for integral] result\n"
-"...|var=val. for future repl. [ex. diff(g)*diff(f(y))|y=g]", 0, QApplication::UnicodeUTF8));
-        label_5->setText(QApplication::translate("Diff", "All", 0, QApplication::UnicodeUTF8));
-        label_6->setText(QApplication::translate("Diff", "Var", 0, QApplication::UnicodeUTF8));
-        label_7->setText(QApplication::translate("Diff", "Nums", 0, QApplication::UnicodeUTF8));
+"\321\204\320\276\321\200\320\274\320\260\321\202: [\320\270\320\267\320\275\320\260\321\207\320\260\320\273\321\214\320\275\320\276\320\265] [\320\276\320\277\320\265\321\200\320\260\321\206\320\270\321\217] [\321\200\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202]|[\320\267\320\260\320\274\320\265\320\275\320\2601] [\320\267\320\260\320\274\320\265\320\275\320\2602]...\n"
+"\320\270\320\267\320\275\320\260\321\207\320\260\320\273\321\214\320\275\320\276\320\265 - \320\270\320\267\320\275\320\260\321\207\320\260\320\273\321\214\320\275\320\276"
+                        "\320\265 \320\262\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265, \321\210\320\260\320\261\320\273\320\276\320\275; \320\277\321\200. \"sin(x)\", \"f(g)\"\n"
+"\320\276\320\277\320\265\321\200\320\260\321\206\320\270\321\217 - \321\207\320\270\321\201\320\273\320\276 0...inf; \321\207\321\202\320\276\320\261\321\213 \320\277\321\200\320\270\320\262\321\217\320\267\320\260\321\202\321\214 \321\207\320\270\321\201\320\273\320\276 \320\272 \320\272\320\276\320\275\320\272\321\200\320\265\321\202\320\275\320\276\320\271 \320\276\320\277\320\265\321\200\320\260\321\206\320\270\320\270, \320\270\321\201\320\277\320\276\320\273\321\214\320\267\321\203\320\271\321\202\320\265 \320\277\320\276\320\273\320\265 \"\320\276\320\277\320\265\321\200\320\260\321\206\320\270\320\270\" \320\262\320\275\320\270\320\267\321\203; \"0\" \320\267\320\260\321\200\320\265\320\267\320\265\321\200\320\262\320\270\321\200\320\276\320\262\320\260\320\275 \320\264\320\273\321\217 \321\202\320\276\320\266\320\264\320\265\321"
+                        "\201\321\202\320\262\320\265\320\275\320\275\321\213\321\205 \320\276\320\277\320\265\321\200\320\260\321\206\320\270\320\271; \320\277\321\200. \"1\", \"2\"\n"
+"\321\200\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202 - \320\272\320\276\320\275\320\265\321\207\320\275\320\276\320\265 \320\262\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265; \320\277\321\200. \"cos(x)\", \"diff(g)*diffy(f(y))\"\n"
+"\320\267\320\260\320\274\320\265\320\275\320\260N - \320\262\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265 \320\262\320\270\320\264\320\260 [a]=[b]. \320\277\320\276\321\201\320\273\320\265 \320\262\321\213\320\277\320\276\320\273\320\275\320\265\320\275\320\270\321\217 \321\201\320\276\320\276\321\202\320\262\320\265\321\202\321\201\321\202\320\262\321\203\321\216\321\211\320\265\320\271 \320\276\320\277\320\265\321\200\320\260\321\206\320\270\320\270 \320\262\321\201\320\265 \"a\" \320\262 \320\264\320\265\321\200\320\265\320\262\320\265 \320\261\321\203\320\264\321"
+                        "\203\321\202 \320\267\320\260\320\274\320\265\320\275\320\265\320\275\321\213 \320\275\320\260 \"b\"\n"
+"\n"
+"\321\202\320\260\320\272\320\266\320\265 \320\277\320\276\320\274\320\270\320\274\320\276 \320\276\320\261\321\213\321\207\320\275\321\213\321\205 \321\204\321\203\320\275\320\272\321\206\320\270\320\271 (sin, cos...) \320\274\320\276\320\266\320\275\320\276 \320\270\321\201\320\277\320\276\320\273\321\214\320\267\320\276\320\262\320\260\321\202\321\214 \320\276\320\277\320\265\321\200\320\260\321\206\320\270\320\270 (\320\277\321\200. \320\264\320\270\321\204\321\204./\320\270\320\275\321\202.). \321\215\321\202\320\276 \321\201\320\276\320\267\320\264\320\260\321\201\321\202 \321\200\320\265\320\272\321\203\321\200\321\201\320\270\321\216 \320\270 \320\277\320\276\320\267\320\262\320\276\320\273\320\270\321\202 \320\277\320\276\321\201\321\207\320\270\321\202\320\260\321\202\321\214, \320\275\320\260\320\277\321\200\320\270\320\274\320\265\321\200, \320\277\321\200\320\276\320\270\320\267\320\262\320"
+                        "\276\320\264\320\275\321\203\321\216 \321\201\321\203\320\274\320\274\321\213.\n"
+"\320\264\320\273\321\217 \321\215\321\202\320\276\320\263\320\276 \320\275\320\260\320\277\320\270\321\210\320\270\321\202\320\265 diff(f) \320\270\320\273\320\270 diffA(f). \320\262 \320\277\320\265\321\200\320\262\320\276\320\274 \321\201\320\273\321\203\321\207\320\260\320\265 \320\276\321\201\320\275\320\276\320\262\320\260\320\275\320\270\320\265\320\274 \320\261\321\203\320\264\320\265\321\202 \"x\", \320\260 \320\262\320\276 \320\262\321\202\320\276\321\200\320\276\320\274 - A. \320\262 \320\272\320\260\321\207\320\265\321\201\321\202\320\262\320\265 A \320\274\320\276\320\266\320\265\321\202 \320\262\321\213\321\201\321\202\321\203\320\277\320\260\321\202\321\214 \321\202\320\276\320\273\321\214\320\272\320\276 \320\276\320\264\320\270\320\275 \321\201\320\270\320\274\320\262\320\276\320\273, \320\277\321\200\320\270\321\207\320\265\320\274 \320\270\320\267 \320\275\320\260\320\261\320\276\321\200\320\260 \320\267\320\260"
+                        "\320\274\320\265\320\275 \320\270\320\273\320\270 \320\277\320\265\321\200\320\265\320\274\320\265\320\275\320\275\321\213\321\205.", 0, QApplication::UnicodeUTF8));
+        label_5->setText(QApplication::translate("Diff", "\320\233\321\216\320\261\321\213\320\265", 0, QApplication::UnicodeUTF8));
+        label_6->setText(QApplication::translate("Diff", "\320\237\320\265\321\200\320\265\320\274\320\265\320\275\320\275\321\213\320\265", 0, QApplication::UnicodeUTF8));
+        label_7->setText(QApplication::translate("Diff", "\320\247\320\270\321\201\320\273\320\260", 0, QApplication::UnicodeUTF8));
+        label_9->setText(QApplication::translate("Diff", "\320\236\320\277\320\265\321\200\320\260\321\206\320\270\320\270", 0, QApplication::UnicodeUTF8));
+        label_10->setText(QApplication::translate("Diff", "\320\227\320\260\320\274\320\265\320\275\321\213", 0, QApplication::UnicodeUTF8));
+        label_11->setText(QApplication::translate("Diff", "\320\236\321\201\320\275. \320\277\320\265\321\200\320\265\320\274.", 0, QApplication::UnicodeUTF8));
+        label_12->setText(QApplication::translate("Diff", "\320\255\320\273\320\265\320\274. \320\276\320\277\320\265\321\200.", 0, QApplication::UnicodeUTF8));
         mall->setText(QApplication::translate("Diff", "fgh", 0, QApplication::UnicodeUTF8));
-        mvars->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
+        mvars->setText(QApplication::translate("Diff", "xyz", 0, QApplication::UnicodeUTF8));
         mnums->setText(QApplication::translate("Diff", "abcdef", 0, QApplication::UnicodeUTF8));
-        tabWidget->setTabText(tabWidget->indexOf(tab_settings), QApplication::translate("Diff", "Settings", 0, QApplication::UnicodeUTF8));
-        label_3->setText(QApplication::translate("Diff", "Equal", 0, QApplication::UnicodeUTF8));
-        label_4->setText(QApplication::translate("Diff", "Pattern", 0, QApplication::UnicodeUTF8));
-        pushButton->setText(QApplication::translate("Diff", "Test it", 0, QApplication::UnicodeUTF8));
-        teste->setPlainText(QApplication::translate("Diff", "sin(x)+cos(x)", 0, QApplication::UnicodeUTF8));
-        testp->setPlainText(QApplication::translate("Diff", "f(g)+h", 0, QApplication::UnicodeUTF8));
-        label_8->setText(QApplication::translate("Diff", "Result", 0, QApplication::UnicodeUTF8));
-        testr_2->setPlainText(QApplication::translate("Diff", "f(3+h)+g", 0, QApplication::UnicodeUTF8));
-        pushButton_2->setText(QApplication::translate("Diff", "INFINITY TEST", 0, QApplication::UnicodeUTF8));
-        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("Diff", "Testing", 0, QApplication::UnicodeUTF8));
+        mops->setText(QApplication::translate("Diff", "diff integral", 0, QApplication::UnicodeUTF8));
+        mrepl->setText(QApplication::translate("Diff", "mnop", 0, QApplication::UnicodeUTF8));
+        mvar0->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
+        mops1->setText(QApplication::translate("Diff", "+-*/^_!@#$%&;:|\\", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(tab_settings), QApplication::translate("Diff", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270", 0, QApplication::UnicodeUTF8));
+        label_3->setText(QApplication::translate("Diff", "\320\222\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265", 0, QApplication::UnicodeUTF8));
+        label_4->setText(QApplication::translate("Diff", "\320\250\320\260\320\261\320\273\320\276\320\275", 0, QApplication::UnicodeUTF8));
+        pushButton->setText(QApplication::translate("Diff", "\320\242\320\265\321\201\321\202\320\270\321\200\320\276\320\262\320\260\321\202\321\214", 0, QApplication::UnicodeUTF8));
+        teste->setPlainText(QApplication::translate("Diff", "3*x+x", 0, QApplication::UnicodeUTF8));
+        testp->setPlainText(QApplication::translate("Diff", "a*f+f", 0, QApplication::UnicodeUTF8));
+        label_8->setText(QApplication::translate("Diff", "\320\240\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202", 0, QApplication::UnicodeUTF8));
+        testr_2->setPlainText(QApplication::translate("Diff", "(a+1)*f", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("Diff", "\320\242\320\265\321\201\321\202\320\270\321\200\320\276\320\262\320\260\320\275\320\270\320\265 (\321\210\320\260\320\261\320\273\320\276\320\275\321\213)", 0, QApplication::UnicodeUTF8));
+        testv_button->setText(QApplication::translate("Diff", "\320\222\320\260\321\200\320\270\320\260\320\275\321\202\321\213", 0, QApplication::UnicodeUTF8));
+        tabWidget->setTabText(tabWidget->indexOf(tab_2), QApplication::translate("Diff", "\320\242\320\265\321\201\321\202\320\270\321\200\320\276\320\262\320\260\320\275\320\270\320\265 (\320\262\320\260\321\200\320\270\320\260\320\275\321\202\321\213)", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("Diff", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'Sans'; font-size:8pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"http://i.179e.net\"><span style=\" text-decoration: underline; color:#0000ff;\">i.179e.net</span></a></p></body></html>", 0, QApplication::UnicodeUTF8));
-        menuDiff->setTitle(QApplication::translate("Diff", "Program", 0, QApplication::UnicodeUTF8));
+        menuDiff->setTitle(QApplication::translate("Diff", "\320\237\321\200\320\276\320\263\321\200\320\260\320\274\320\274\320\260", 0, QApplication::UnicodeUTF8));
     } // retranslateUi
 
 };

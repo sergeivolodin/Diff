@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'diff.h'
 **
-** Created: Mon Feb 21 21:37:12 2011
+** Created: Tue Mar 22 17:25:29 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.6.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_Diff[] = {
        4,       // revision
        0,       // classname
        0,    0, // classinfo
-       7,   14, // methods
+       8,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,17 +33,19 @@ static const uint qt_meta_data_Diff[] = {
  // slots: signature, parameters, type, tag, flags
        6,    5,    5,    5, 0x08,
       32,    5,    5,    5, 0x08,
-      56,    5,    5,    5, 0x08,
+      58,    5,    5,    5, 0x08,
       82,    5,    5,    5, 0x08,
-     107,    5,    5,    5, 0x08,
-     132,    5,    5,    5, 0x08,
-     157,    5,    5,    5, 0x08,
+     108,    5,    5,    5, 0x08,
+     133,    5,    5,    5, 0x08,
+     158,    5,    5,    5, 0x08,
+     183,    5,    5,    5, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Diff[] = {
-    "Diff\0\0on_pushButton_2_clicked()\0"
+    "Diff\0\0on_testv_button_clicked()\0"
+    "on_pushButton_2_clicked()\0"
     "on_pushButton_clicked()\0"
     "on_button_parse_clicked()\0"
     "on_button_diff_clicked()\0"
@@ -81,16 +83,16 @@ int Diff::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: on_pushButton_2_clicked(); break;
-        case 1: on_pushButton_clicked(); break;
-        case 2: on_button_parse_clicked(); break;
-        case 3: on_button_diff_clicked(); break;
-        case 4: on_button_show_clicked(); break;
-        case 5: on_button_easy_clicked(); break;
-        case 6: on_button_integral_clicked(); break;
+        case 0: on_testv_button_clicked(); break;
+        case 2: on_pushButton_clicked(); break;
+        case 3: on_button_parse_clicked(); break;
+        case 4: on_button_diff_clicked(); break;
+        case 5: on_button_show_clicked(); break;
+        case 6: on_button_easy_clicked(); break;
+        case 7: on_button_integral_clicked(); break;
         default: ;
         }
-        _id -= 7;
+        _id -= 8;
     }
     return _id;
 }
