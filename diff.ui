@@ -51,7 +51,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_main">
      <attribute name="title">
@@ -80,22 +80,6 @@
          </property>
          <property name="text">
           <string>Производная</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="button_integral">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Интеграл</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
          </property>
         </widget>
        </item>
@@ -193,7 +177,7 @@
         </sizepolicy>
        </property>
        <property name="plainText">
-        <string>sin(cos(x))+1/x</string>
+        <string>sin(cos(x))+tg(x)+x+(1/x)+(10*x)</string>
        </property>
       </widget>
      </widget>
@@ -287,9 +271,8 @@ f(g) 1 diff(g)*diffm(f(m))|m=g
 x 1 1
 a 1 0
 0*f 0 0
-f*0 0 0
+f*1 0 f
 0+f 0 f
-f+0 0 f
 f-0 0 f
 0-f 0 -f
 0/f 0 0

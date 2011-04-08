@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Tue Mar 22 19:21:10 2011
+** Created: Fri Apr 8 17:58:45 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -40,7 +40,6 @@ public:
     QWidget *horizontalLayoutWidget_3;
     QHBoxLayout *horizontalLayout_3;
     QPushButton *button_diff;
-    QPushButton *button_integral;
     QPushButton *button_easy;
     QPushButton *button_show;
     QGroupBox *groupBox_2;
@@ -135,14 +134,6 @@ public:
         button_diff->setSizePolicy(sizePolicy1);
 
         horizontalLayout_3->addWidget(button_diff);
-
-        button_integral = new QPushButton(horizontalLayoutWidget_3);
-        button_integral->setObjectName(QString::fromUtf8("button_integral"));
-        sizePolicy1.setHeightForWidth(button_integral->sizePolicy().hasHeightForWidth());
-        button_integral->setSizePolicy(sizePolicy1);
-        button_integral->setFlat(false);
-
-        horizontalLayout_3->addWidget(button_integral);
 
         button_easy = new QPushButton(horizontalLayoutWidget_3);
         button_easy->setObjectName(QString::fromUtf8("button_easy"));
@@ -375,7 +366,7 @@ public:
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
 
-        tabWidget->setCurrentIndex(2);
+        tabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(Diff);
@@ -387,12 +378,11 @@ public:
         actionExit->setText(QApplication::translate("Diff", "\320\222\321\213\321\205\320\276\320\264", 0, QApplication::UnicodeUTF8));
         actionExit->setShortcut(QApplication::translate("Diff", "Alt+Q", 0, QApplication::UnicodeUTF8));
         button_diff->setText(QApplication::translate("Diff", "\320\237\321\200\320\276\320\270\320\267\320\262\320\276\320\264\320\275\320\260\321\217", 0, QApplication::UnicodeUTF8));
-        button_integral->setText(QApplication::translate("Diff", "\320\230\320\275\321\202\320\265\320\263\321\200\320\260\320\273", 0, QApplication::UnicodeUTF8));
         button_easy->setText(QApplication::translate("Diff", "\320\243\320\277\321\200\320\276\321\201\321\202\320\270\321\202\321\214", 0, QApplication::UnicodeUTF8));
         button_show->setText(QApplication::translate("Diff", "\320\237\320\276\320\272\320\260\320\267\320\260\321\202\321\214", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("Diff", "\320\240\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202:", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("Diff", "\320\222\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265:", 0, QApplication::UnicodeUTF8));
-        line_src->setPlainText(QApplication::translate("Diff", "sin(cos(x))+1/x", 0, QApplication::UnicodeUTF8));
+        line_src->setPlainText(QApplication::translate("Diff", "sin(cos(x))+tg(x)+x+(1/x)+(10*x)", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("Diff", "\320\236\321\201\320\275\320\276\320\262\320\260\320\275\320\270\320\265", 0, QApplication::UnicodeUTF8));
         line_base->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_main), QApplication::translate("Diff", "\320\236\321\201\320\275\320\276\320\262\320\275\320\276\320\265 \320\276\320\272\320\275\320\276", 0, QApplication::UnicodeUTF8));
@@ -436,9 +426,8 @@ public:
 "x 1 1\n"
 "a 1 0\n"
 "0*f 0 0\n"
-"f*0 0 0\n"
+"f*1 0 f\n"
 "0+f 0 f\n"
-"f+0 0 f\n"
 "f-0 0 f\n"
 "0-f 0 -f\n"
 "0/f 0 0\n"

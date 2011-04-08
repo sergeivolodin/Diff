@@ -9,21 +9,11 @@
 #include <strings.h>
 using namespace std;
 /*
-  lexer_normal FAILS.
-  lexer returns wrong-allocated strings (result.src)
-  diff table: functions, operations +-
-  custom operations +
-  new functions (api), documenation
-  */
-/*
-  tree::type() leaf-0,unary-1,binary-2 +
-  diff table: add !contains (x) - for integrals, also parsing (add '!' to variant of letters; +
-    operator== in trees: add order change for it. -
-  */
-/*
-  segfault in (lg(x)^2)^2-3*lg(x)-1
-   (lexer_normal problem)
-  */
+  segfault: lexer_normal, parser (из-за lexerа)
+  parser: sin(cos(x))+10*8*x распознается как (sin(cos(x))+10*8)*x
+//
+  API, документация
+*/
 unsigned int sw=0;
 const int CHAR_TNUM=1; //numbers: 0-9.
 const int CHAR_TLETT=2; //letters a-zA-Z
@@ -31,37 +21,37 @@ const int CHAR_TOP=3; //operations: +-*/^
 const int CHAR_TEND=4; //end of string
 const int CHAR_TBR1=5; //opening bracket
 const int CHAR_TBR2=6; //closing bracket
-//strings
+//строки
 const char* ERROR="Error.";
 const char* MATH_BR1="(";
 const char* MATH_BR2=")";
 const char* MATH_INTEGRAL_ADDC="+C";
 const char* MATH_NO="-";
-//math variables for rules
+//наборы
 char* MATH_NUMS="abcde";
 char* MATH_VARS="xyz";
 char* MATH_OPS="+-*/^";
 char* MATH_FUNCS="fgh";
 char* MATH_REPLS="mnop";
-//constans
+//константы
 char* MATH_DEFDIFF="x";
 const int MATH_TDIFF=1;
 const char MATH_CPOSTREPL='|';
 const char MATH_CCOMMOND=' ';
 const char MATH_CLINESD='\n';
+const int MATH_MAXREPL=100;
 char** MATH_OPLIST=NULL;
 const char MATH_CPOSTREPLD=',';
 const char MATH_CPOSTREPLDC='=';
 const int MATH_TINTEGRAL=2;
-//operations
+//операции
 const char* MATH_MUL="*";
 const char* MATH_DIV="/";
-const int MATH_MAXREPL=100;
 const char* MATH_ADD="+";
 const char* MATH_SUB="-";
 const char* MATH_POW="^";
 const char* MATH_POW1="_";
-//tree constans
+//константы к классу tree
 const int TREE_DMATH=0;
 const int TREE_DTREE=1;
 const int TREE_ADEF=0;
@@ -119,7 +109,6 @@ char* stradd(char* l, const char* r){
     unsigned int i=0;
     bool l_end=false;
     bool r_end=false;
-    //right ends after left
     while(!r_end) {
         if(l[i]=='\0') {
             l_end=true;
@@ -139,7 +128,6 @@ char* stradd(char* l, const char* r){
         i++;
     }
     d[maxindex]='\0';
-    //delete[] l;
     return(d);
 }
 strings* explode(const char* src,char sym=' ') {
@@ -222,16 +210,14 @@ int char_state(char in) {
     return(0);
 }
 struct token {
-    char* c; //content
-    int t; //type
+    char* c;
+    int t;
 };
 struct lexer_answer {
     token* result;
     int max;
     bool errors;
 };
-
-//tree settings
 const int TREE_DDEFAULT=TREE_DMATH;
 char* char_replace(char* src,char a,char b) {
     char* result=new char[strlen(src)];
@@ -268,6 +254,9 @@ void var_dump(const char* a) {
         cerr << "Int: [" << a << "]" << endl;
 }*/
 int op_prio(char* a) {
+    if(a==NULL) {
+        return(-1);
+    }
     int i=0;
     while(i<strlen(MATH_OPS)) {
         if(MATH_OPS[i]==a[0]) {
@@ -319,7 +308,6 @@ private:
                 res=stradd(res,MATH_BR2);
             }
             res=stradd(res,value);
-            //&&b->b!=NULL
             if((tmp=(!b->leaf))) {
                 res=stradd(res,MATH_BR1);
             }
@@ -382,31 +370,21 @@ private:
         }
         return(res);
     }
-    //Operation/value
     char* value;
-    //leaf?
     bool leaf;
-    //if leaf=>two pointers to other trees
-    //if unary only "a" used
     tree *a,*b;
         public:
-    //leaf
     tree(const char* str): value(strcp(str)),leaf(true) {}
-    //binary with trees
     tree(tree *in_a,const char* op,tree *in_b): value(strcp(op)),leaf(false),a(in_a),b(in_b) {}
-    //unary with tree
     tree(const char *op,tree *in_): value(strcp(op)),leaf(false),a(in_),b(NULL) {}
-    //binary with leaves
     tree(const char* ina, const char* op, const char* inb): value(strcp(op)),leaf(false) {
         a=new tree(ina);
         b=new tree(inb);
     }
-    //unary with leaf
     tree(const char* op,const char* in_): value(strcp(op)),leaf(false),b(NULL) {
         a=new tree(in_);
     }
     tree():value(NULL),leaf(false),a(NULL),b(NULL){}
-    //returns pointer to other but same tree
     tree* copymem() {
         tree* nt;
         char* s=strcp(value);
@@ -424,24 +402,6 @@ private:
         }
         return(nt);
     }
-    //bugs.
-    /*~tree() {
-        cerr << "DESTRUCTOR CALLED [" << display() << "]" << endl;
-        if(leaf) {
-            if(value!=NULL) {
-                var_dump(value);
-                delete[] value;
-            }
-        }
-        else {
-            if(a!=NULL) {
-                delete a;
-            }
-            if(b!=NULL) {
-                delete b;
-            }
-        }
-    }*/
     bool operator==(tree x) {
         int ctype=type();
         if(x.type()!=ctype) {
@@ -516,18 +476,14 @@ private:
         }
         else {
             if(b==NULL) {
-                //?x
                 if(char_islett(value[0])) {
-                    //f(x)
                     return(TREE_TFUNCTION);
                 }
                 else {
-                    //[op]x
                     return(TREE_TUNARY);
                 }
             }
             else {
-                //x+y
                 return(TREE_TBINARY);
             }
         }
@@ -557,8 +513,6 @@ private:
         }
     }
     void operator=(tree *src) {
-        /*delete *a;
-        delete *b;*/
         tree *newtree;
         newtree=src->copymem();
         leaf=newtree->leaf;
@@ -595,15 +549,13 @@ struct trees {
     int max;
 };
 lexer_answer* lexer(char* str) {
-    //print_str(str);
     int i=0;
     int len=strlen(str);
     int pos=0;
     char* temp=NULL,*aa=NULL;
-    //char* bb;
     char current;
     int laststate=-1,currentstate;
-    token* result=new token[len+2]; //char count more than tokens count.
+    token* result=new token[len+2];
     lexer_answer* res=new lexer_answer;
     while(laststate!=CHAR_TEND) {
         if(len==pos) {
@@ -620,10 +572,7 @@ lexer_answer* lexer(char* str) {
         if(currentstate==0) {
             cerr << "Warning (lexer): wrong symbol at " << pos << endl;
             pos++;
-            //res.max=-1;
             continue;
-            //res.errors=true;
-            //return(res);
         }
         else {
             if((currentstate!=CHAR_TBR2)&&(currentstate!=CHAR_TBR1)&&(currentstate!=CHAR_TOP)&&(laststate==currentstate)) {
@@ -708,18 +657,14 @@ parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pri
     bool ok=false;
     result.tr=NULL;
     if(binary) {
-        //first operand
         tmpres=parser(src,pos,false);
         if(src->result[tmpres.pos].t==CHAR_TOP) {
             if(minus_to_plus&&src->result[tmpres.pos].c==MATH_SUB) {
                 src->result[tmpres.pos].c=strcp(MATH_ADD);
             }
-            //its binary
             if(op_prio(src->result[tmpres.pos].c)>parent_prio) {
-                //if current prio is bigger than parent prio
                 tmpres1=parser(src,tmpres.pos+1,true,op_prio(src->result[tmpres.pos].c),false);
                 if((src->result[tmpres1.pos].t==CHAR_TOP)&&sub_allow) {
-                    //if sub_recursion allowed AND next sym is operation
                     tmpres2=parser(src,tmpres1.pos+1,true,0,true,false);
                     rtree=new tree(new tree(tmpres.tr,src->result[tmpres.pos].c,tmpres1.tr),src->result[tmpres1.pos].c,tmpres2.tr);
                     result.pos=tmpres2.pos;
@@ -738,7 +683,6 @@ parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pri
             result.pos=tmpres.pos;
         }
     }
-    //brackets
     if(src->result[pos].t==CHAR_TBR1&&!ok) {
         ok=true;
         tmpres=parser(src,pos+1);
@@ -752,46 +696,29 @@ parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pri
             return(result);
         }
     }
-    //unary
     if(src->result[pos].t==CHAR_TOP&&!ok) {
         ok=true;
         tmpres=parser(src,pos+1,false);
-        tree* a;//,*b;
+        tree* a;
         if(tmpres.tr!=NULL) {
             rtree=new tree(MATH_SUB,tmpres.tr);
             a=tmpres.tr;
-            if(a->test()) {
-                //b=a->easy();
-                //b=a;
-                /*if(b->isleaf()&&char_isnum(b->getvalue()[0])) {
-                    rtree=new tree(print_num(-atof(b->getvalue())));
-                }*/
-            }
             result.pos=tmpres.pos;
         }
-        //        else {
-        //            cerr << "Warning (parser): " << pos << ": unary \"" << src->result[pos].c << "\" not allowed" << endl;
-        //            src->errors=true;
-        //            result.pos=tmpres.pos;
-        //        }
     }
-    //functions
     if(src->result[pos].t==CHAR_TLETT&&!ok) {
         if(src->result[pos+1].t==CHAR_TBR1) {
             ok=true;
             tmpres=parser(src,pos+2);
             result.pos=tmpres.pos+1;
             if(src->result[tmpres.pos].t==CHAR_TBR2) {
-                //cerr << "Function parse called, new position is " << result.pos << " (it contains [" << src->result[tmpres.pos+1].c  << "])" << endl;
                 rtree=new tree(src->result[pos].c,tmpres.tr);
             }
             else {
                 src->errors=true;
-                cerr << tmpres.pos << ": function closing bracket expected, but '" << src->result[tmpres.pos-1].c << "' found." << endl;
             }
         }
     }
-    //atomic
     if((src->result[pos].t==CHAR_TNUM||src->result[pos].t==CHAR_TLETT)&&!ok) {
         ok=true;
         result.pos=pos+1;
@@ -823,118 +750,7 @@ tree* parse(char* src) {
     }
     return(b.tr->copymem());
 }
-bool pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF) {
-    //cerr << "pattern from [" << stree->display() << "] to [" << spattern->display() << "]" << endl;
-    //cerr << "funcs=" << MATH_FUNCS << endl;
-    //cerr << "vars=" << MATH_VARS << endl;
-    //cerr << "nums=" << MATH_NUMS << endl;
-    //need in sin(x) with sin(x), not f
-    if((*stree)==(*spattern)) {
-        return(true);
-    }
-    int ttype=stree->type();
-    int ptype=spattern->type();
-    //tree types:num/var/unary/binary/function
-    if(ptype==ttype) {
-        //cerr << "pattern type ==" << endl;
-        //types equal, so lets test sub-trees.
-        if(ttype==TREE_TNUM) {
-            //cerr << "pattern num ";
-            //current is num. pattern can be [axf]
-            if(strchar(MATH_NUMS,spattern->getvalue())||strchar(MATH_VARS,spattern->getvalue())||strchar(MATH_FUNCS,spattern->getvalue())) {
-                //cerr << "ok" << endl;
-                return(true);
-            }
-        }
-        if(ttype==TREE_TVAR) {
-            //cerr << "var";
-            //current is var. pattern can be [var or function]
-            //cerr << "pattern var ";
-            if(strchar(MATH_FUNCS,spattern->getvalue())) {
-                return(true);
-            }
-            if(strchar(MATH_VARS,spattern->getvalue())) {
-                if(str(stree->getvalue(),base)) {
-                    //cerr << "ok (pattern: var/funcs)" << endl;
-                    return(true);
-                }
-            }
-            //for 'y' when base is x
-            if(strchar(MATH_NUMS,spattern->getvalue())) {
-                if(!str(stree->getvalue(),base)) {
-                    //cerr << "ok (pattern: othervar)" << endl;
-                    return(true);
-                }
-            }
-        }
-        if(ttype==TREE_TFUNCTION) {
-            //current is function. pattern can be [number, var or function]
-            //cerr << "pattern function ";
-            if((str(spattern->getvalue(),stree->getvalue()))||strchar(MATH_FUNCS,spattern->getvalue())) {
-                //same function OR 'f' pattern, go inside
-                //cerr << "ok" << endl;
-                return(pattern(stree->geta(),spattern->geta(),base));
-            }
-            else {
-                //cerr << "[" <<  MATH_FUNCS << ", " <<  spattern->getvalue() << "]" << endl ;
-            }
-        }
-        if(ttype==TREE_TUNARY) {
-            //cerr << "pattern unary ";
-            if(str(stree->getvalue(),spattern->getvalue())) {
-                //-(x),-(f)
-                //same operation, go inside
-                //cerr << "inside..." << endl;
-                return(pattern(stree->geta(),spattern->geta(),base));
-            }
-        }
-        if(ttype==TREE_TBINARY) {
-            //commutative operations support will be added later
-            //2-level commutative changing will be unuseful here
-            //cerr << "pattern binary ";
-            if(str(stree->getvalue(),spattern->getvalue())) {
-                //x+y,f+g
-                //cerr << "inside..." << endl;
-                if(*(spattern->geta())==*(spattern->getb())) {
-                    if(!(*(stree->geta())==*(stree->getb()))) {
-                        return(false);
-                    }
-                }
-                return(pattern(stree->geta(),spattern->geta(),base)&&pattern(stree->getb(),spattern->getb(),base));
-            }
-        }
-    }
-    else {
-        //cerr << "pattern type !=" << endl;
-        if(ptype==TREE_TVAR) {
-            //cerr << "var patern... ";
-            if(strchar(MATH_FUNCS,spattern->getvalue())) {
-                //cerr << "ok (pattern=function)" << endl;
-                return(true);
-            }
-            if(strchar(MATH_NUMS,spattern->getvalue())) {
-                //cerr << "pattern=num. testing stree: ";
-                if(ttype==TREE_TBINARY) {
-                    //cerr << "binary tree. go inside... " << endl;
-                    //a and b contains ONLY numbers
-                    return((!stree->geta()->contains(base))&&(!stree->getb()->contains(base)));
-                }
-                if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) {
-                    //cerr << "function/unary tree. go inside... " << endl;
-                    //b contains ONLY numbers
-                    return(!(stree->geta()->contains(base)));
-                }
-                if(ttype==TREE_TNUM) {
-                    //cerr << "num tree. ok" << endl;
-                    return(true);
-                }
-            }
-        }
-    }
-    return(false);
-}
 unsigned int pattern_count_funcs(tree* p) {
-    //WARNING: if in pattern exists more than one same replacer, it will not be counted once
     int ptype=p->type();
     if(ptype==TREE_TVAR) {
         if(strchar(MATH_FUNCS,p->getvalue())||strchar(MATH_NUMS,p->getvalue())) {
@@ -954,15 +770,18 @@ unsigned int pattern_count_funcs(tree* p) {
     }
     return(0);
 }
-tree* getreplacer(replacers* src,char* a,int offset=0) {
+tree* getreplacer(replacers* src,char* a) {
     int i=0;
     if(src!=NULL&&a!=NULL) {
         if(src->r!=NULL) {
-            while(i<=(src->maxindex+offset)) {
+            while(i<=src->maxindex) {
                 if(src->r[i]!=NULL) {
                     if((src->r[i]->l!=NULL)&&(src->r[i]->r!=NULL)) {
                         if(str(src->r[i]->l,a)) {
-                            return(src->r[i]->r);
+                            if(src->r[i]->r->test()) {
+                                return(src->r[i]->r);
+                            }
+
                         }
                     }
                 }
@@ -972,81 +791,216 @@ tree* getreplacer(replacers* src,char* a,int offset=0) {
     }
     return(NULL);
 }
+bool replacer_add(replacers* src,char* a,tree* which) {
+    if(a==NULL||src==NULL||which==NULL) {
+        return(false);
+    }
+    /*if(!which->test()) {
+        return(false)
+    }*/
+    tree* repl=getreplacer(src,a);
+    if(repl==NULL) {
+        src->maxindex++;
+        src->r[src->maxindex]=new replacer;
+        src->r[src->maxindex]->l=a;
+        src->r[src->maxindex]->r=which->copymem();
+        //cerr << "Notice (repl_add): adding replacer #" << src->maxindex << " " << a << "=" << which->display() << "with type=" << which->type() << endl;
+    }
+    else if(!(*repl==*which)) {
+        return(false);
+    }
+    return(true);
+}
 
-replacers* getreplacers(tree* stree,tree* spattern,const char* base=MATH_DEFDIFF,replacers* areplacers=NULL) {
-    cerr << "getreplacers called with [" << stree->display() << "] and [" << spattern->display() << "]" << endl;
+replacers* pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF,replacers* areplacers=NULL) {
     replacers* crepl=NULL;
     int fcount=pattern_count_funcs(spattern);
-
-    if(fcount==0) {
-        cerr << "getreplacers: fcount=0" << endl;
-        return(crepl);
-    }
-    if(!pattern(stree,spattern,base)) {
-        cerr << "getreplacers: !pattern" << endl;
-        return(crepl);
-    }
     if(areplacers==NULL) {
         crepl=new replacers;
-        crepl->maxindex=0;
-        crepl->r=new replacer*[fcount];
+        crepl->maxindex=-1;
+        crepl->r=new replacer*[fcount+1];
     }
     else {
         crepl=areplacers;
     }
     int ttype=stree->type();
     int ptype=spattern->type();
-    //
-    if(ptype==TREE_TBINARY) {
-        cerr << "getreplacers_binary from " << spattern->display() << endl;
-        //pattern matches tree, so only extracting variables
-        getreplacers(stree->geta(),spattern->geta(),base,crepl);
-        getreplacers(stree->getb(),spattern->getb(),base,crepl);
-    }
-    if(ptype==TREE_TUNARY) {
-        //cerr << "getreplacers_unary from" << spattern->getvalue() << endl;
-        getreplacers(stree->geta(),spattern->geta(),base,crepl);
-    }
-    if(ptype==TREE_TFUNCTION) {
-        //f(g)=>any function from anything
-        //if f then write f=[fvalue] else only inside
-        //cerr << "getreplacers_function from" << spattern->getvalue() << endl;
-        if(strchar(MATH_FUNCS,spattern->getvalue())&&(getreplacer(crepl,spattern->getvalue(),-1)==NULL)) {
-            crepl->r[crepl->maxindex]=new replacer;
-            crepl->r[crepl->maxindex]->l=strcp(spattern->getvalue());
-            //  cerr << "!!!![adding from function " << spattern->getvalue() << "=" << stree->getvalue() << "]" << endl;
-            crepl->r[crepl->maxindex]->r=new tree(strcp(stree->getvalue()));
-            crepl->maxindex++;
+    if(ptype==ttype) {
+//        cerr << "types=";
+        if(ttype==TREE_TNUM) {
+//            cerr << "num ";
+            if(!str(stree->getvalue(),spattern->getvalue())) {
+//                cerr << "NOMATCH" << endl;
+                return(NULL);
+            }
+//            cerr << "ok" << endl;
         }
-        getreplacers(stree->geta(),spattern->geta(),base,crepl);
-    }
-    if(ptype==TREE_TVAR) {
-        //cerr << "getreplacers_var from" << spattern->getvalue() << endl;
-        if(strchar(MATH_FUNCS,spattern->getvalue())&&(getreplacer(crepl,spattern->getvalue(),-1)==NULL)) {
-            crepl->r[crepl->maxindex]=new replacer;
-            crepl->r[crepl->maxindex]->l=strcp(spattern->getvalue());
-            crepl->r[crepl->maxindex]->r=stree->copymem();
-            crepl->maxindex++;
+        if(ttype==TREE_TVAR) {
+//            cerr << "var ";
+            if(strchar(MATH_FUNCS,spattern->getvalue())) {
+//                cerr << "ptype=funcs ";
+                if(!replacer_add(crepl,spattern->getvalue(),stree)) {
+//                    cerr << "WRONGREPLACER" << endl;
+                    return(NULL);
+                }
+//                cerr << "ok" << endl;
+            }
+            else if(strchar(MATH_VARS,spattern->getvalue())) {
+//                cerr << "ptype=vars ";
+                if(str(stree->getvalue(),base)) {
+//                    cerr << "baseok ";
+                    if(!replacer_add(crepl,spattern->getvalue(),stree)) {
+//                        cerr << "WRONGREPLACER" << endl;
+                        return(NULL);
+                    }
+//                    cerr << "ok" << endl;
+                }
+                else {
+//                    cerr << "WRONGBASE" << endl;
+                    return(NULL);
+                }
+            }
+            else if(strchar(MATH_NUMS,spattern->getvalue())) {
+//                cerr << "ptype=nums ";
+                if(!str(stree->getvalue(),base)) {
+//                    cerr << "baseok ";
+                    if(!replacer_add(crepl,spattern->getvalue(),stree)) {
+//                        cerr << "WRONGREPLACER" << endl;
+                        return(NULL);
+                    }
+//                    cerr << "ok" << endl;
+                }
+                else {
+//                    cerr << "WRONGBASE" << endl;
+                    return(NULL);
+                }
+            }
+            else if(!str(stree->getvalue(),spattern->getvalue())) {
+//                cerr << "WRONGOTHER" << endl;
+                return(NULL);
+            }
         }
-        //t=sin(z) by z && p=sin(x) THEN match
-        if((strchar(MATH_VARS,spattern->getvalue())||strchar(MATH_NUMS,spattern->getvalue()))&&(getreplacer(crepl,spattern->getvalue(),-1)==NULL)) {
-            cerr << "f1 [" << spattern->display() << "] [" << stree->display() << "]" << endl;
-            if(ttype==TREE_TVAR||ttype==TREE_TNUM) {
-                crepl->r[crepl->maxindex]=new replacer;
-                crepl->r[crepl->maxindex]->l=strcp(spattern->getvalue());
-                crepl->r[crepl->maxindex]->r=stree->copymem();
-                crepl->maxindex++;
+        if(ttype==TREE_TFUNCTION) {
+//            cerr << "func ";
+            if(strchar(MATH_FUNCS,spattern->getvalue())) {
+//                cerr << "f='func' ";
+                if(!replacer_add(crepl,spattern->getvalue(),(new tree(strcp(stree->getvalue())))->copymem())) {
+//                    cerr << "WRONGREPLACER" << endl;
+                    return(NULL);
+                }
+                if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
+//                    cerr << "WRONGARG" << endl;
+                    return(NULL);
+                }
+//                cerr << "ok" << endl;
+            }
+            else if(str(spattern->getvalue(),stree->getvalue())) {
+//                cerr << "samefunction ";
+                if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
+//                    cerr << "WRONGARG" << endl;
+                    return(NULL);
+                }
+//                cerr << "ok" << endl;
+            }
+            else {
+//                cerr << "WRONGFUNCTION" << endl;
+                return(NULL);
+            }
+        }
+        if(ttype==TREE_TUNARY) {
+//            cerr << "unary ";
+            if(str(stree->getvalue(),spattern->getvalue())) {
+//                cerr << "sameoperation ";
+                if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
+//                    cerr << "WRONGARG" << endl;
+                    return(NULL);
+                }
+//                cerr << "ok" << endl;
+            }
+            else {
+//                cerr << "WRONGOPERATION" << endl;
+                return(NULL);
+            }
+        }
+        if(ttype==TREE_TBINARY) {
+//            cerr << "binary ";
+            if(str(stree->getvalue(),spattern->getvalue())) {
+//                cerr << "sameoperation ";
+                if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
+//                    cerr << "WRONGARG_a" << endl;
+                    return(NULL);
+                }
+                if(!pattern(stree->getb(),spattern->getb(),base,crepl)) {
+//                    cerr << "WRONGARG_b" << endl;
+                    return(NULL);
+                }
+//                cerr << "ok" << endl;
+            }
+            else {
+//                cerr << "WRONGOPERATION" << endl;
+                return(NULL);
             }
         }
     }
-    //
-    if(areplacers==NULL) {
-        crepl->maxindex--;
-        return(crepl);
-    }
     else {
-        return(NULL);
+        if(ptype==TREE_TVAR) {
+//            cerr << "mixed_type=";
+            if(strchar(MATH_FUNCS,spattern->getvalue())) {
+//                cerr << "funcs ";
+                if(!replacer_add(crepl,spattern->getvalue(),stree)) {
+//                    cerr << "WRONGREPL" << endl;
+                    return(NULL);
+                }
+//                cerr << "ok" << endl;
+            }
+            else if(strchar(MATH_NUMS,spattern->getvalue())) {
+//                cerr << "nums ttype=";
+                if(ttype==TREE_TBINARY) {
+//                    cerr << "binary ";
+                    if((stree->geta()->contains(base))||(stree->getb()->contains(base))) {
+//                        cerr << "ARGCONTAINSBASE" << endl;
+                        return(NULL);
+                    }
+                    if(!replacer_add(crepl,spattern->getvalue(),stree)) {
+//                        cerr << "WRONGREPL" << endl;
+                        return(NULL);
+                    }
+//                    cerr << "ok" << endl;
+                }
+                if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) {
+//                    cerr << "unary/function ";
+                    if(stree->geta()->contains(base)) {
+//                        cerr << "ARGCONTAINSBASE" << endl;
+                        return(NULL);
+                    }
+                    if(!replacer_add(crepl,spattern->getvalue(),stree)) {
+//                        cerr << "WRONGREPL" << endl;
+                        return(NULL);
+                    }
+                }
+                if(ttype==TREE_TNUM) {
+//                    cerr << "num ";
+                    if(!replacer_add(crepl,spattern->getvalue(),stree)) {
+//                        cerr << "WRONGREPL" << endl;
+                        return(NULL);
+                    }
+//                    cerr << "ok" << endl;
+                }
+            }
+            else {
+//                cerr << "WRONGMIXED" << endl;
+                return(NULL);
+            }
+        }
+        else {
+//            cerr << "WRONGMIXED" << endl;
+            return(NULL);
+        }
     }
+    if(areplacers==NULL) {
+        cerr << "[pattern:" << stree->display() << "@" << spattern->display() << "]";
+    }
+    return(crepl);
 }
 tree* replace(tree* spattern,replacers* srepl) {
     if(spattern==NULL) {
@@ -1080,7 +1034,6 @@ tree* replace(tree* spattern,replacers* srepl) {
         }
     }
     if(stype==TREE_TBINARY) {
-        //cerr << "replace-binary-b=" << spattern->getb()->display();
         rtree=new tree(replace(spattern->geta(),srepl),spattern->getvalue(),replace(spattern->getb(),srepl));
     }
     return(rtree);
@@ -1095,10 +1048,8 @@ struct rules {
     rule** r;
     int maxindex;
 };
-//MATH_CCOMMOND MATH_CLINESD MATH_CPOSTREPLD MATH_CPOSTREPL
 rule* parsestr(char* str) {
     strings* t=explode(str,MATH_CPOSTREPL);
-    //a n b
     strings* l=NULL;
     strings* r=NULL;
     rule* res=new rule;
@@ -1112,7 +1063,6 @@ rule* parsestr(char* str) {
         if(l==NULL||l->max==-1) {
             return(NULL);
         }
-        //cerr << "parsestr_nopostrepl (" << str << ") l-max [" << l->max << "]" << endl;
     }
     else if(t->max==1) {
         l=explode(t->strs[0],MATH_CCOMMOND);
@@ -1120,20 +1070,17 @@ rule* parsestr(char* str) {
         if(l==NULL||r==NULL||l->max==-1||r->max==-1) {
             return(NULL);
         }
-        //cerr << "parsestr_postrepl (" << str << ") l-max=" << l->max << ", " << "r-max=" << r->max << endl;
         if(r->max>=0) {
             prepl=new replacers;
             prepl->r=new replacer*[r->max+1];
-            //prepl - replacers pointer for all postrepl
             while(i<=r->max) {
                 tmp=explode(r->strs[i],MATH_CPOSTREPLDC);
                 if(tmp->max==1) {
-                    prepl->r[rcount]=new replacer; //current replacer "y=1"
+                    prepl->r[rcount]=new replacer;
                     prepl->r[rcount]->l=tmp->strs[0];
                     ttree=parse(tmp->strs[1]);
                     if(ttree!=NULL) {
                         prepl->r[rcount]->r=ttree;
-                        //cerr << "adding " << prepl->r[rcount]->l << "=" << prepl->r[rcount]->r->display() << endl;
                         rcount++;
                     }
                 }
@@ -1149,17 +1096,9 @@ rule* parsestr(char* str) {
         res->src=parse(l->strs[0]);
         res->op=atoi(l->strs[1]);
         res->dest=parse(l->strs[2]);
-        if(res->src==NULL) {
-            //cerr << "tree from res->src (" << l->strs[0] << ") == NULL" << endl;
-        }
-        if(res->dest==NULL) {
-            //cerr << "tree from res->src (" << l->strs[3] << ") == NULL" << endl;
-        }
         if(res->src==NULL||res->dest==NULL) {
-            //cerr << "NULL parse tree" << endl;
             return(NULL);
         }
-        //        /cerr << "tree ok" << endl;
         return(res);
     }
     return(NULL);
@@ -1231,7 +1170,7 @@ bool invariants(trees* a,tree* b) {
 trees* getvariants(tree* a,bool recursive=false,trees* write=NULL) {
     trees* res=NULL,*t1=NULL,*t2=NULL;
     tree* ttree=NULL,*ttree1=NULL;
-    replacers* repl=NULL;
+    replacers* repl=NULL,*tmp=NULL;
     int ti1=0,ti2=0;
     if(write==NULL) {
         res=new trees;
@@ -1267,7 +1206,6 @@ trees* getvariants(tree* a,bool recursive=false,trees* write=NULL) {
                 }
                 ti1++;
             }
-            //binary tree
         }
         if(a->type()==TREE_TUNARY||a->type()==TREE_TFUNCTION) {
             t1=getvariants(a->geta(),recursive);
@@ -1290,9 +1228,8 @@ trees* getvariants(tree* a,bool recursive=false,trees* write=NULL) {
         }
     }
     while(i<=FRULES->maxindex) {
-        if(FRULES->r[i]->op==0&&pattern(a,FRULES->r[i]->src)) {
-            //       cerr << "Notice: [" << a->display() << "] pattern with [" << FRULES->r[i]->src->display() << "]" << endl;
-            ttree=replace(FRULES->r[i]->dest,getreplacers(a,FRULES->r[i]->src));
+        if(FRULES->r[i]->op==0&&(tmp=pattern(a,FRULES->r[i]->src))) {
+            ttree=replace(FRULES->r[i]->dest,tmp);
             if(!invariants(res,ttree)) {
                 if(res->max<MATH_MAXREPL) {
                     res->max++;
@@ -1312,7 +1249,6 @@ trees* getvariants(tree* a,bool recursive=false,trees* write=NULL) {
     }
     return(NULL);
 }
-//WARNING: works VERY slow (time ~ n^4).
 tree* easy_old(tree* src) {
     int i=0,opc=0;
     tree* res=src;
@@ -1329,10 +1265,58 @@ tree* easy_old(tree* src) {
     }
     return(res);
 }
-tree* easy(tree* src) {
-    int i=0,opc=0;
+tree* calc(tree* src) {
+    float tmp_float,l=0,r=0;
+    bool set=false;
     tree* res=src;
-    trees* vars=getvariants(src,false);
+    if(src->type()==TREE_TBINARY) {
+        cerr << "calc " << src->display() << ": ";
+        if(src->geta()->isleaf()&&src->getb()->isleaf()) {
+            cerr << "a+b ";
+            if(char_isnum(src->geta()->getvalue()[0])&&char_isnum(src->getb()->getvalue()[0])) {
+                l=atof(src->geta()->getvalue());
+                r=atof(src->getb()->getvalue());
+                set=true;
+            }
+        }
+        else if((!src->geta()->isleaf())&&(!src->getb()->isleaf())&&str(src->geta()->getvalue(),"-")&&str(src->getb()->getvalue(),"-")&&src->geta()->geta()->isleaf()&&src->getb()->geta()->isleaf()) {
+            l=-atof(src->geta()->geta()->getvalue());
+            r=-atof(src->getb()->geta()->getvalue());
+            set=true;
+        }
+        if(set) {
+            if(str(src->getvalue(),"+")) {
+                cerr << "+";
+                res=new tree(print_num(l+r));
+            }
+            if(str(src->getvalue(),"-")) {
+                cerr << "-";
+                res=new tree(print_num(l-r));
+            }
+            if(str(src->getvalue(),"*")) {
+                cerr << "*";
+                res=new tree(print_num(l*r));
+            }
+            if(str(src->getvalue(),"/")) {
+                tmp_float=l/r;
+                if(is_integer(tmp_float)) {
+                    cerr << "/";
+                    res=new tree(print_num(tmp_float));
+                }
+            }
+            if(res->isleaf()&&res->getvalue()[0]=='-') {
+                cerr << "[-a]=>-[a]";
+                res=new tree("-",print_num(-atof(res->getvalue())));
+            }
+        }
+        cerr << endl;
+    }
+    return(res);
+}
+tree* easy(tree* src) {
+    cerr << "called easy of " << src->display() << endl;
+    int i=0,opc=0;
+    tree* res=src,*tmp;
     int min=src->varcount();
     if(src->type()==TREE_TBINARY) {
         res=new tree(easy(src->geta()),src->getvalue(),easy(src->getb()));
@@ -1340,29 +1324,24 @@ tree* easy(tree* src) {
     if(src->type()==TREE_TUNARY||src->type()==TREE_TFUNCTION) {
         res=new tree(src->getvalue(),easy(src->geta()));
     }
+    trees* vars=getvariants(res,false);
     while(i<=vars->max) {
-        opc=vars->t[i]->varcount();
-        //cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
+        tmp=calc(vars->t[i]);
+        opc=tmp->varcount();
+        cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
         if(opc<min) {
             min=opc;
-            res=vars->t[i];
+            res=tmp;
         }
         i++;
     }
-    if(res->type()==TREE_TBINARY) {
-        res=new tree(easy(res->geta()),res->getvalue(),easy(res->getb()));
-    }
-    if(res->type()==TREE_TUNARY||res->type()==TREE_TFUNCTION) {
-        res=new tree(res->getvalue(),easy(res->geta()));
-    }
-    return(res);
+    return(calc(res));
 }
 tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crules=FRULES,bool rmode=false) {
     int i=0,type=0;
     char* name=NULL, *tmp=NULL,*tmp1=NULL;
     replacers* tmprepl=NULL,*newrepl=NULL;
     if(!str(base,MATH_DEFDIFF)) {
-        //replace "x" in src and dest patterns to base
         newrepl=new replacers;
         newrepl->maxindex=0;
         newrepl->r=new replacer*[1];
@@ -1376,9 +1355,7 @@ tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crule
     if(!rmode) {
         if(FRULES!=NULL) {
             while(i<=FRULES->maxindex) {
-                if(pattern(src,replace(FRULES->r[i]->src,newrepl),base)&&FRULES->r[i]->op==operation) {
-                    tmprepl=getreplacers(src,replace(FRULES->r[i]->src,newrepl),base);
-                    //tmprepl - patterns
+                if((tmprepl=pattern(src,replace(FRULES->r[i]->src,newrepl),base))&&FRULES->r[i]->op==operation) {
                     return(
                             replace(
                                     replace(
@@ -1419,7 +1396,6 @@ tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crule
                 tmp[1]='\0';
                 name=MATH_OPLIST[operation-1];
                 name=stradd(name,tmp);
-                //cerr << name << endl;
                 if(str(name,src->getvalue())) {
                     return(operate(src->geta(),operation,tmp,crules));
                 }
@@ -1456,13 +1432,13 @@ void Diff::on_button_diff_clicked() {
         if(dest!=NULL) {
             res="dest ok";
             res=easy(dest)->display();
+            //res=dest->display();
         }
     }
     a=res;
     ui->line_dest->setPlainText(a);
 }
 void Diff::update_settings() {
-    //settings
     FRULES=parsestrs(ui->plainTextEdit->toPlainText().toAscii().data());
     MATH_VARS=strcp(ui->mvars->text().toAscii().data());
     MATH_FUNCS=strcp(ui->mall->text().toAscii().data());
@@ -1485,13 +1461,32 @@ void Diff::on_button_parse_clicked() {
     update_settings();
 }
 void Diff::on_button_integral_clicked() {
-
 }
 void Diff::on_button_easy_clicked() {
-
+    tree* src=parse(ui->line_src->toPlainText().toAscii().data());
+    tree* dest=NULL;
+    char* res=strcp(ERROR);
+    QString a;
+    if(src!=NULL) {
+        res="src ok";
+        dest=easy(src);
+        if(dest!=NULL) {
+            res=dest->display();
+        }
+    }
+    a=res;
+    ui->line_dest->setPlainText(a);
 }
 void Diff::on_button_show_clicked() {
-
+    tree* src=parse(ui->line_src->toPlainText().toAscii().data());
+    tree* dest=NULL;
+    char* res=strcp(ERROR);
+    QString a;
+    if(src!=NULL) {
+        res=src->display();
+    }
+    a=res;
+    ui->line_dest->setPlainText(a);
 }
 void Diff::on_pushButton_clicked() {
     QString a,b,c;
@@ -1499,11 +1494,11 @@ void Diff::on_pushButton_clicked() {
     *y=parse(ui->testp->toPlainText().toAscii().data()),
     *z=parse(ui->testr_2->toPlainText().toAscii().data()),
     *trepl=NULL;
+    replacers* repl=NULL;
     char* aa=NULL;
     if(x!=NULL&&y!=NULL) {
         cerr << "testing [" << x->display() << "] with [" << y->display() << "]" << endl;
-        if(pattern(x,y)) {
-            replacers* repl = getreplacers(x,y);
+        if(repl=pattern(x,y)) {
             int i=0;
             while(repl!=NULL&&i<=repl->maxindex) {
                 aa=stradd(aa,repl->r[i]->l);
