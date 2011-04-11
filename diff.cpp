@@ -214,7 +214,7 @@ struct token {
     int t;
 };
 struct lexer_answer {
-    token* result;
+    token** result;
     int max;
     bool errors;
 };
@@ -549,206 +549,162 @@ struct trees {
     int max;
 };
 lexer_answer* lexer(char* str) {
-    int i=0;
+    int i=0,cstate=0,pstate=0;
     int len=strlen(str);
-    int pos=0;
-    char* temp=NULL,*aa=NULL;
-    char current;
-    int laststate=-1,currentstate;
-    token* result=new token[len+2];
+    char c,*tmp;
     lexer_answer* res=new lexer_answer;
-    while(laststate!=CHAR_TEND) {
-        if(len==pos) {
-            current='\0';
-            currentstate=CHAR_TEND;
+    res->result=new token*[len];
+    res->max=-1;
+    while(i<len) {
+        c=str[i];
+        if(c==',') c='.';
+        cstate=char_state(c);
+        if(cstate==0) {
+            cerr << "Warning (lexer): wrong symbol '" << c << "' at" << i << endl;
         }
         else {
-            current=tolower(str[pos]);
-            if(current=='.') {
-                current=',';
-            }
-            currentstate=char_state(current);
-        }
-        if(currentstate==0) {
-            cerr << "Warning (lexer): wrong symbol at " << pos << endl;
-            pos++;
-            continue;
-        }
-        else {
-            if((currentstate!=CHAR_TBR2)&&(currentstate!=CHAR_TBR1)&&(currentstate!=CHAR_TOP)&&(laststate==currentstate)) {
-                aa=new char[2];
-                aa[0]=current;
-                aa[1]='\0';
-                temp=stradd(temp,aa);
+            tmp=new char[2];
+            tmp[0]=c;
+            tmp[1]=0;
+            if(res->max==-1||cstate!=pstate||cstate==CHAR_TBR2) {
+                res->result[++(res->max)]=new token;
+                res->result[res->max]->t=cstate;
+                res->result[res->max]->c=tmp;
             }
             else {
-                if(laststate!=-1) {
-                    result[i].t=laststate;
-                    result[i].c=strcp(temp);
-                    aa=NULL;
-                    temp=NULL;
-                    i++;
-                }
-                if(current!='\0') {
-                    temp=new char[2];
-                    temp[0]=current;
-                    temp[1]='\0';
-                    aa=NULL;
-                }
+                res->result[res->max]->c=stradd(res->result[res->max]->c,tmp);
             }
         }
-        laststate=currentstate;
-        pos++;
+        pstate=cstate;
+        i++;
     }
-    res->max=i-1;
-    res->result=result;
     res->errors=false;
     return(res);
 }
-lexer_answer* lexer_normal(lexer_answer* src) {
-    int i=0,ri=0;
-    lexer_answer* res=new lexer_answer;
-    res->result=new token[((src->max)*2)+1];
-    res->errors=src->errors;
-    char* pow=strcp(MATH_POW),*mul=strcp(MATH_MUL);
-    while(i<=src->max) {
-        res->result[ri].c=src->result[i].c;
-        res->result[ri].t=src->result[i].t;
-        ri++;
-        if(i<src->max) {
-            if(src->result[i].t==CHAR_TNUM&&(src->result[i].c)[0]!='-'&&src->result[i+1].t==CHAR_TLETT) {
-                res->result[ri].t=CHAR_TOP;
-                res->result[ri].c=mul;
-                ri++;
-                i++;
-                res->result[ri].c=src->result[i].c;
-                res->result[ri].t=src->result[i].t;
-                ri++;
-                if(src->result[i+2].t==CHAR_TNUM&&(src->result[i+2].c)[0]!='-') {
-                    res->result[ri].t=CHAR_TOP;
-                    res->result[ri].c=pow;
-                    ri++;
-                    i++;
-                    res->result[ri].c=src->result[i].c;
-                    res->result[ri].t=src->result[i].t;
-                    ri++;
-                }
-            }
-            //repeat.
-            if(src->result[i].t==CHAR_TLETT&&src->result[i+1].t==CHAR_TNUM&&(src->result[i+1].c)[0]!='-') {
-                res->result[ri].t=CHAR_TOP;
-                res->result[ri].c=pow;
-                ri++;
-                i++;
-                res->result[ri].c=src->result[i].c;
-                res->result[ri].t=src->result[i].t;
-                ri++;
-            }
-        }
-        i++;
+bool ptest(parser_answer* src) {
+    if(src!=NULL&&src->tr!=NULL&&src->tr->test()) {
+        return(true);
     }
-    res->max=ri-1;
-    return(res);
+    return(false);
 }
-parser_answer parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true,bool minus_to_plus=false) {
-    tree* rtree=NULL;
-    parser_answer result,tmpres,tmpres1,tmpres2;
-    result.pos=pos;
-    bool ok=false;
-    result.tr=NULL;
+void perr(const char* a) {
+    cout << "Warning (parser/NULL): " << a << endl;
+}
+
+parser_answer* parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
+    parser_answer* result=NULL,*tmpres=NULL,*tmpres1=NULL,*tmpres2=NULL;
+    result=new parser_answer;
+    result->pos=pos;
+    result->tr=NULL;
+    if(pos>src->max||src->errors) {
+        perr("pos/errors");
+        return(NULL);
+    }
     if(binary) {
         tmpres=parser(src,pos,false);
-        if(src->result[tmpres.pos].t==CHAR_TOP) {
-            if(minus_to_plus&&src->result[tmpres.pos].c==MATH_SUB) {
-                src->result[tmpres.pos].c=strcp(MATH_ADD);
-            }
-            if(op_prio(src->result[tmpres.pos].c)>parent_prio) {
-                tmpres1=parser(src,tmpres.pos+1,true,op_prio(src->result[tmpres.pos].c),false);
-                if((src->result[tmpres1.pos].t==CHAR_TOP)&&sub_allow) {
-                    tmpres2=parser(src,tmpres1.pos+1,true,0,true,false);
-                    rtree=new tree(new tree(tmpres.tr,src->result[tmpres.pos].c,tmpres1.tr),src->result[tmpres1.pos].c,tmpres2.tr);
-                    result.pos=tmpres2.pos;
-                    ok=true;
+        if(!ptest(tmpres)) {
+            perr("binary tmpres");
+            return(NULL);
+        }
+        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TOP) {
+            if(op_prio(src->result[tmpres->pos]->c)>=parent_prio) {
+                tmpres1=parser(src,tmpres->pos+1,true,op_prio(src->result[tmpres->pos]->c));
+                if(!ptest(tmpres1)) {
+                    perr("binary tmpres1");
+                    return(NULL);
+                }
+                if(tmpres1->pos<=src->max&&(src->result[tmpres1->pos]->t==CHAR_TOP)&&sub_allow) {
+                    tmpres2=parser(src,tmpres1->pos+1,true,0,true);
+                    if(!ptest(tmpres2)) {
+                        perr("binary tmpres2");
+                        return(NULL);
+                    }
+                    result->tr=new tree(new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr),src->result[tmpres1->pos]->c,tmpres2->tr);
+                    result->pos=tmpres2->pos;
+                    return(result);
                 }
                 else {
-                    rtree=new tree(tmpres.tr,src->result[tmpres.pos].c,tmpres1.tr);
-                    result.pos=tmpres1.pos;
-                    ok=true;
+                    result->tr=new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr);
+                    result->pos=tmpres1->pos;
+                    return(result);
                 }
             }
         }
         else {
-            ok=true;
-            rtree=tmpres.tr;
-            result.pos=tmpres.pos;
+            result->tr=tmpres->tr;
+            result->pos=tmpres->pos;
+            return(result);
         }
     }
-    if(src->result[pos].t==CHAR_TBR1&&!ok) {
-        ok=true;
+    if(src->result[pos]->t==CHAR_TBR1) {
         tmpres=parser(src,pos+1);
-        if(src->result[tmpres.pos].t==CHAR_TBR2) {
-            result.pos=tmpres.pos+1;
-            rtree=tmpres.tr;
+        if(!ptest(tmpres)) {
+            perr("() tmpres");
+            return(NULL);
+        }
+        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TBR2) {
+            result->pos=tmpres->pos+1;
+            result->tr=tmpres->tr;
+            return(result);
         }
         else {
             cerr << "Warning (parser): Closing bracket not found" << endl;
             src->errors=true;
-            return(result);
+            perr(") bracket");
+            return(NULL);
         }
     }
-    if(src->result[pos].t==CHAR_TOP&&!ok) {
-        ok=true;
+    if(src->result[pos]->t==CHAR_TOP) {
         tmpres=parser(src,pos+1,false);
-        tree* a;
-        if(tmpres.tr!=NULL) {
-            rtree=new tree(MATH_SUB,tmpres.tr);
-            a=tmpres.tr;
-            result.pos=tmpres.pos;
+        if(!ptest(tmpres)) {
+            perr("unary tmpres");
+            return(NULL);
         }
+        result->tr=new tree(MATH_SUB,tmpres->tr);
+        result->pos=tmpres->pos;
+        return(result);
     }
-    if(src->result[pos].t==CHAR_TLETT&&!ok) {
-        if(src->result[pos+1].t==CHAR_TBR1) {
-            ok=true;
+    if(src->result[pos]->t==CHAR_TLETT) {
+        if(((pos+1)<=src->max)&&src->result[pos+1]->t==CHAR_TBR1) {
             tmpres=parser(src,pos+2);
-            result.pos=tmpres.pos+1;
-            if(src->result[tmpres.pos].t==CHAR_TBR2) {
-                rtree=new tree(src->result[pos].c,tmpres.tr);
+            if(!ptest(tmpres)) {
+                perr("func tmpres");
+                return(NULL);
+            }
+            if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TBR2) {
+                cerr << "parsing function " << src->result[pos]->c << "(" << tmpres->tr->display() << ")" << endl;
+                result->tr=new tree(src->result[pos]->c,tmpres->tr);
+                result->pos=tmpres->pos+1;
+                return(result);
             }
             else {
+                if(tmpres->pos<=src->max) {
+                    cerr << "wrong function " << src->result[pos]->c << tmpres->tr->display() << " next=" << src->result[tmpres->pos]->c << endl;
+                }
                 src->errors=true;
+                return(NULL);
             }
         }
     }
-    if((src->result[pos].t==CHAR_TNUM||src->result[pos].t==CHAR_TLETT)&&!ok) {
-        ok=true;
-        result.pos=pos+1;
-        rtree=new tree(src->result[pos].c);
+    if((src->result[pos]->t==CHAR_TNUM||src->result[pos]->t==CHAR_TLETT)) {
+        result->pos=pos+1;
+        result->tr=new tree(src->result[pos]->c);
+        return(result);
     }
-    if(src->errors) {
-        result.tr=NULL;
-    }
-    else {
-        result.tr=rtree;
-    }
-    return(result);
+    return(NULL);
 }
 tree* parse(char* src) {
     if(str(src,"")) {
         return(NULL);
     }
-    lexer_answer* a;//,*a_src;
-    parser_answer b;
+    lexer_answer* a=lexer(src);;//,*a_src;
+    parser_answer* b=parser(a);
     //a_src=lexer(src);
-    //a=lexer_normal(a_src);
-    a=lexer(src);
-    b=parser(a);
-    if(b.tr==NULL||a->errors) {
+    //a=lexer_normal(a_src)
+    if(!ptest(b)) {
         return(NULL);
     }
-    if(!(b.tr->test())) {
-        return(NULL);
-    }
-    return(b.tr->copymem());
+    return(b->tr->copymem());
 }
 unsigned int pattern_count_funcs(tree* p) {
     int ptype=p->type();
@@ -826,174 +782,174 @@ replacers* pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF,rep
     int ttype=stree->type();
     int ptype=spattern->type();
     if(ptype==ttype) {
-//        cerr << "types=";
+        //        cerr << "types=";
         if(ttype==TREE_TNUM) {
-//            cerr << "num ";
+            //            cerr << "num ";
             if(!str(stree->getvalue(),spattern->getvalue())) {
-//                cerr << "NOMATCH" << endl;
+                //                cerr << "NOMATCH" << endl;
                 return(NULL);
             }
-//            cerr << "ok" << endl;
+            //            cerr << "ok" << endl;
         }
         if(ttype==TREE_TVAR) {
-//            cerr << "var ";
+            //            cerr << "var ";
             if(strchar(MATH_FUNCS,spattern->getvalue())) {
-//                cerr << "ptype=funcs ";
+                //                cerr << "ptype=funcs ";
                 if(!replacer_add(crepl,spattern->getvalue(),stree)) {
-//                    cerr << "WRONGREPLACER" << endl;
+                    //                    cerr << "WRONGREPLACER" << endl;
                     return(NULL);
                 }
-//                cerr << "ok" << endl;
+                //                cerr << "ok" << endl;
             }
             else if(strchar(MATH_VARS,spattern->getvalue())) {
-//                cerr << "ptype=vars ";
+                //                cerr << "ptype=vars ";
                 if(str(stree->getvalue(),base)) {
-//                    cerr << "baseok ";
+                    //                    cerr << "baseok ";
                     if(!replacer_add(crepl,spattern->getvalue(),stree)) {
-//                        cerr << "WRONGREPLACER" << endl;
+                        //                        cerr << "WRONGREPLACER" << endl;
                         return(NULL);
                     }
-//                    cerr << "ok" << endl;
+                    //                    cerr << "ok" << endl;
                 }
                 else {
-//                    cerr << "WRONGBASE" << endl;
+                    //                    cerr << "WRONGBASE" << endl;
                     return(NULL);
                 }
             }
             else if(strchar(MATH_NUMS,spattern->getvalue())) {
-//                cerr << "ptype=nums ";
+                //                cerr << "ptype=nums ";
                 if(!str(stree->getvalue(),base)) {
-//                    cerr << "baseok ";
+                    //                    cerr << "baseok ";
                     if(!replacer_add(crepl,spattern->getvalue(),stree)) {
-//                        cerr << "WRONGREPLACER" << endl;
+                        //                        cerr << "WRONGREPLACER" << endl;
                         return(NULL);
                     }
-//                    cerr << "ok" << endl;
+                    //                    cerr << "ok" << endl;
                 }
                 else {
-//                    cerr << "WRONGBASE" << endl;
+                    //                    cerr << "WRONGBASE" << endl;
                     return(NULL);
                 }
             }
             else if(!str(stree->getvalue(),spattern->getvalue())) {
-//                cerr << "WRONGOTHER" << endl;
+                //                cerr << "WRONGOTHER" << endl;
                 return(NULL);
             }
         }
         if(ttype==TREE_TFUNCTION) {
-//            cerr << "func ";
+            //            cerr << "func ";
             if(strchar(MATH_FUNCS,spattern->getvalue())) {
-//                cerr << "f='func' ";
+                //                cerr << "f='func' ";
                 if(!replacer_add(crepl,spattern->getvalue(),(new tree(strcp(stree->getvalue())))->copymem())) {
-//                    cerr << "WRONGREPLACER" << endl;
+                    //                    cerr << "WRONGREPLACER" << endl;
                     return(NULL);
                 }
                 if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
-//                    cerr << "WRONGARG" << endl;
+                    //                    cerr << "WRONGARG" << endl;
                     return(NULL);
                 }
-//                cerr << "ok" << endl;
+                //                cerr << "ok" << endl;
             }
             else if(str(spattern->getvalue(),stree->getvalue())) {
-//                cerr << "samefunction ";
+                //                cerr << "samefunction ";
                 if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
-//                    cerr << "WRONGARG" << endl;
+                    //                    cerr << "WRONGARG" << endl;
                     return(NULL);
                 }
-//                cerr << "ok" << endl;
+                //                cerr << "ok" << endl;
             }
             else {
-//                cerr << "WRONGFUNCTION" << endl;
+                //                cerr << "WRONGFUNCTION" << endl;
                 return(NULL);
             }
         }
         if(ttype==TREE_TUNARY) {
-//            cerr << "unary ";
+            //            cerr << "unary ";
             if(str(stree->getvalue(),spattern->getvalue())) {
-//                cerr << "sameoperation ";
+                //                cerr << "sameoperation ";
                 if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
-//                    cerr << "WRONGARG" << endl;
+                    //                    cerr << "WRONGARG" << endl;
                     return(NULL);
                 }
-//                cerr << "ok" << endl;
+                //                cerr << "ok" << endl;
             }
             else {
-//                cerr << "WRONGOPERATION" << endl;
+                //                cerr << "WRONGOPERATION" << endl;
                 return(NULL);
             }
         }
         if(ttype==TREE_TBINARY) {
-//            cerr << "binary ";
+            //            cerr << "binary ";
             if(str(stree->getvalue(),spattern->getvalue())) {
-//                cerr << "sameoperation ";
+                //                cerr << "sameoperation ";
                 if(!pattern(stree->geta(),spattern->geta(),base,crepl)) {
-//                    cerr << "WRONGARG_a" << endl;
+                    //                    cerr << "WRONGARG_a" << endl;
                     return(NULL);
                 }
                 if(!pattern(stree->getb(),spattern->getb(),base,crepl)) {
-//                    cerr << "WRONGARG_b" << endl;
+                    //                    cerr << "WRONGARG_b" << endl;
                     return(NULL);
                 }
-//                cerr << "ok" << endl;
+                //                cerr << "ok" << endl;
             }
             else {
-//                cerr << "WRONGOPERATION" << endl;
+                //                cerr << "WRONGOPERATION" << endl;
                 return(NULL);
             }
         }
     }
     else {
         if(ptype==TREE_TVAR) {
-//            cerr << "mixed_type=";
+            //            cerr << "mixed_type=";
             if(strchar(MATH_FUNCS,spattern->getvalue())) {
-//                cerr << "funcs ";
+                //                cerr << "funcs ";
                 if(!replacer_add(crepl,spattern->getvalue(),stree)) {
-//                    cerr << "WRONGREPL" << endl;
+                    //                    cerr << "WRONGREPL" << endl;
                     return(NULL);
                 }
-//                cerr << "ok" << endl;
+                //                cerr << "ok" << endl;
             }
             else if(strchar(MATH_NUMS,spattern->getvalue())) {
-//                cerr << "nums ttype=";
+                //                cerr << "nums ttype=";
                 if(ttype==TREE_TBINARY) {
-//                    cerr << "binary ";
+                    //                    cerr << "binary ";
                     if((stree->geta()->contains(base))||(stree->getb()->contains(base))) {
-//                        cerr << "ARGCONTAINSBASE" << endl;
+                        //                        cerr << "ARGCONTAINSBASE" << endl;
                         return(NULL);
                     }
                     if(!replacer_add(crepl,spattern->getvalue(),stree)) {
-//                        cerr << "WRONGREPL" << endl;
+                        //                        cerr << "WRONGREPL" << endl;
                         return(NULL);
                     }
-//                    cerr << "ok" << endl;
+                    //                    cerr << "ok" << endl;
                 }
                 if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) {
-//                    cerr << "unary/function ";
+                    //                    cerr << "unary/function ";
                     if(stree->geta()->contains(base)) {
-//                        cerr << "ARGCONTAINSBASE" << endl;
+                        //                        cerr << "ARGCONTAINSBASE" << endl;
                         return(NULL);
                     }
                     if(!replacer_add(crepl,spattern->getvalue(),stree)) {
-//                        cerr << "WRONGREPL" << endl;
+                        //                        cerr << "WRONGREPL" << endl;
                         return(NULL);
                     }
                 }
                 if(ttype==TREE_TNUM) {
-//                    cerr << "num ";
+                    //                    cerr << "num ";
                     if(!replacer_add(crepl,spattern->getvalue(),stree)) {
-//                        cerr << "WRONGREPL" << endl;
+                        //                        cerr << "WRONGREPL" << endl;
                         return(NULL);
                     }
-//                    cerr << "ok" << endl;
+                    //                    cerr << "ok" << endl;
                 }
             }
             else {
-//                cerr << "WRONGMIXED" << endl;
+                //                cerr << "WRONGMIXED" << endl;
                 return(NULL);
             }
         }
         else {
-//            cerr << "WRONGMIXED" << endl;
+            //            cerr << "WRONGMIXED" << endl;
             return(NULL);
         }
     }
