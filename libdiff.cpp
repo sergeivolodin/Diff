@@ -232,7 +232,7 @@ private:
         int ctype=type();
         if(x.type()!=ctype) {
             return(false);
-            cerr << "!=";
+            //cerr << "!=";
         }
         else {
             if(ctype==TREE_TVAR||ctype==TREE_TNUM) {
@@ -813,7 +813,7 @@ replacers* pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF,rep
         }
     }
     if(areplacers==NULL) {
-        cerr << "[pattern:" << stree->display() << "@" << spattern->display() << "]";
+        //cerr << "[pattern:" << stree->display() << "@" << spattern->display() << "]";
     }
     return(crepl);
 }
@@ -1046,9 +1046,8 @@ void settings_from_file(const char* filename=CONFFILE) {
         MATH_REPLS=a->strs[3];
         MATH_DEFDIFF=a->strs[4];
         MATH_OPS=a->strs[5];
-        print_str(a->strs[6]);
+        //print_str(a->strs[6]);
         MATH_OPLIST=explode(a->strs[6],' ');
-        cerr << MATH_DEFDIFF << " " << MATH_VARS;
     }
     else {
         cerr << "Warning [settings]: wrong parameters count!" << endl;
@@ -1056,7 +1055,6 @@ void settings_from_file(const char* filename=CONFFILE) {
     buf=fgets(buf,BUFLEN,file);
     int i=0,m=atoi(buf);
     FRULES->r=new rule*[m+1];
-    cerr << m << endl;
     while(fgets(buf,BUFLEN,file)&&FRULES->maxindex<=m) {
         remove_nl(buf);
         if((tr=parsestr(buf))!=NULL) {
@@ -1192,7 +1190,7 @@ tree* easy_old(tree* src) {
     int min=src->varcount();
     while(i<=vars->max) {
         opc=vars->t[i]->varcount();
-        cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
+        //cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
         if(opc<min) {
             min=opc;
             res=vars->t[i];
@@ -1206,9 +1204,9 @@ tree* calc(tree* src) {
     bool set=false;
     tree* res=src;
     if(src->type()==TREE_TBINARY) {
-        cerr << "calc " << src->display() << ": ";
+        //cerr << "calc " << src->display() << ": ";
         if(src->geta()->isleaf()&&src->getb()->isleaf()) {
-            cerr << "a+b ";
+            //cerr << "a+b ";
             if(char_isnum(src->geta()->getvalue()[0])&&char_isnum(src->getb()->getvalue()[0])) {
                 l=atof(src->geta()->getvalue());
                 r=atof(src->getb()->getvalue());
@@ -1222,30 +1220,30 @@ tree* calc(tree* src) {
         }
         if(set) {
             if(str(src->getvalue(),"+")) {
-                cerr << "+";
+                //cerr << "+";
                 res=new tree(print_num(l+r));
             }
             if(str(src->getvalue(),"-")) {
-                cerr << "-";
+                //cerr << "-";
                 res=new tree(print_num(l-r));
             }
             if(str(src->getvalue(),"*")) {
-                cerr << "*";
+                //cerr << "*";
                 res=new tree(print_num(l*r));
             }
             if(str(src->getvalue(),"/")) {
                 tmp_float=l/r;
                 if(is_integer(tmp_float)) {
-                    cerr << "/";
+                    //cerr << "/";
                     res=new tree(print_num(tmp_float));
                 }
             }
             if(res->isleaf()&&res->getvalue()[0]=='-') {
-                cerr << "[-a]=>-[a]";
+                //cerr << "[-a]=>-[a]";
                 res=new tree("-",print_num(-atof(res->getvalue())));
             }
         }
-        cerr << endl;
+        //cerr << endl;
     }
     return(res);
 }
@@ -1261,7 +1259,7 @@ tree* rcalc(tree* src) {
 }
 
 tree* easy(tree* src) {
-    cerr << "called easy of " << src->display() << endl;
+    //cerr << "called easy of " << src->display() << endl;
     int i=0,opc=0;
     tree* res=src,*tmp;
     int min=src->opcount();
@@ -1275,7 +1273,7 @@ tree* easy(tree* src) {
     while(i<=vars->max) {
         tmp=calc(rcalc(vars->t[i]));
         opc=tmp->opcount();
-        cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
+        //cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
         if(opc<min) {
             min=opc;
             res=tmp;

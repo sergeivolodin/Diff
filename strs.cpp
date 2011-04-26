@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string.h>
 #include <stdio.h>
 #include "funcs.cpp"
 using namespace std;
