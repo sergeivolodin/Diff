@@ -7,13 +7,18 @@
 #include <math.h>
 #include <string.h>
 #include <strings.h>
+#define BUFLEN 1000
+#define CONFFILE ".diff_program"
 using namespace std;
 /*
-  segfault: lexer_normal, parser (из-за lexerа)
-  parser: sin(cos(x))+10*8*x распознается как (sin(cos(x))+10*8)*x
-//
   API, документация
+  расстановка скобок в парсере
+  gui
 */
+struct strings {
+    char** strs;
+    int max;
+};
 unsigned int sw=0;
 const int CHAR_TNUM=1; //numbers: 0-9.
 const int CHAR_TLETT=2; //letters a-zA-Z
@@ -39,10 +44,10 @@ const int MATH_TDIFF=1;
 const char MATH_CPOSTREPL='|';
 const char MATH_CCOMMOND=' ';
 const char MATH_CLINESD='\n';
-const int MATH_MAXREPL=100;
-char** MATH_OPLIST=NULL;
 const char MATH_CPOSTREPLD=',';
 const char MATH_CPOSTREPLDC='=';
+const int MATH_MAXREPL=100;
+strings* MATH_OPLIST=NULL;
 const int MATH_TINTEGRAL=2;
 //операции
 const char* MATH_MUL="*";
@@ -86,10 +91,6 @@ bool str(const char* a,const char* b) {
         return(strcmp(a,b)==0);
     }
 }
-struct strings {
-    char** strs;
-    int max;
-};
 char* strcp(const char* src) {
     if(src==NULL){return(NULL);}
     char* destination=new char[strlen(src)+1];
@@ -130,6 +131,13 @@ char* stradd(char* l, const char* r){
     d[maxindex]='\0';
     return(d);
 }
+char* stradd(char* l,char r) {
+    char* a=new char[2];
+    a[0]=r;
+    a[1]=0;
+    return(stradd(l,a));
+}
+
 strings* explode(const char* src,char sym=' ') {
     unsigned int i=0;
     strings* res=new strings;
@@ -590,89 +598,31 @@ bool ptest(parser_answer* src) {
 void perr(const char* a) {
     cout << "Warning (parser/NULL): " << a << endl;
 }
-
-parser_answer* parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
-    parser_answer* result=NULL,*tmpres=NULL,*tmpres1=NULL,*tmpres2=NULL;
-    result=new parser_answer;
-    result->pos=pos;
-    result->tr=NULL;
-    if(pos>src->max||src->errors) {
-        perr("pos/errors");
-        return(NULL);
-    }
-    if(binary) {
-        tmpres=parser(src,pos,false);
-        if(!ptest(tmpres)) {
-            perr("binary tmpres");
-            return(NULL);
-        }
-        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TOP) {
-            if(op_prio(src->result[tmpres->pos]->c)>=parent_prio) {
-                tmpres1=parser(src,tmpres->pos+1,true,op_prio(src->result[tmpres->pos]->c));
-                if(!ptest(tmpres1)) {
-                    perr("binary tmpres1");
-                    return(NULL);
-                }
-                if(tmpres1->pos<=src->max&&(src->result[tmpres1->pos]->t==CHAR_TOP)&&sub_allow) {
-                    tmpres2=parser(src,tmpres1->pos+1,true,0,true);
-                    if(!ptest(tmpres2)) {
-                        perr("binary tmpres2");
-                        return(NULL);
-                    }
-                    result->tr=new tree(new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr),src->result[tmpres1->pos]->c,tmpres2->tr);
-                    result->pos=tmpres2->pos;
-                    return(result);
-                }
-                else {
-                    result->tr=new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr);
-                    result->pos=tmpres1->pos;
-                    return(result);
-                }
-            }
-        }
-        else {
-            result->tr=tmpres->tr;
-            result->pos=tmpres->pos;
-            return(result);
-        }
-    }
-    if(src->result[pos]->t==CHAR_TBR1) {
-        tmpres=parser(src,pos+1);
-        if(!ptest(tmpres)) {
-            perr("() tmpres");
-            return(NULL);
-        }
-        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TBR2) {
-            result->pos=tmpres->pos+1;
-            result->tr=tmpres->tr;
-            return(result);
-        }
-        else {
-            cerr << "Warning (parser): Closing bracket not found" << endl;
-            src->errors=true;
-            perr(") bracket");
-            return(NULL);
-        }
-    }
-    if(src->result[pos]->t==CHAR_TOP) {
-        tmpres=parser(src,pos+1,false);
-        if(!ptest(tmpres)) {
-            perr("unary tmpres");
-            return(NULL);
-        }
-        result->tr=new tree(MATH_SUB,tmpres->tr);
-        result->pos=tmpres->pos;
+parser_answer* parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true);
+parser_answer* parse_atomic(lexer_answer *,int);
+parser_answer* parse_function(lexer_answer *,int);
+parser_answer* parse_unary(lexer_answer *,int);
+parser_answer* parse_brackets(lexer_answer *,int);
+parser_answer* parse_atomic(lexer_answer *src,int pos=0) {
+    if((src->result[pos]->t==CHAR_TNUM||src->result[pos]->t==CHAR_TLETT)) {
+        parser_answer* result=new parser_answer;
+        result->pos=pos+1;
+        result->tr=new tree(src->result[pos]->c);
         return(result);
     }
+    return(NULL);
+}
+parser_answer* parse_function(lexer_answer *src,int pos=0) {
     if(src->result[pos]->t==CHAR_TLETT) {
         if(((pos+1)<=src->max)&&src->result[pos+1]->t==CHAR_TBR1) {
-            tmpres=parser(src,pos+2);
+            parser_answer* tmpres=parser(src,pos+2);
             if(!ptest(tmpres)) {
                 perr("func tmpres");
                 return(NULL);
             }
             if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TBR2) {
-                cerr << "parsing function " << src->result[pos]->c << "(" << tmpres->tr->display() << ")" << endl;
+                parser_answer* result=new parser_answer;
+                //cerr << "parsing function " << src->result[pos]->c << "(" << tmpres->tr->display() << ")" << endl;
                 result->tr=new tree(src->result[pos]->c,tmpres->tr);
                 result->pos=tmpres->pos+1;
                 return(result);
@@ -686,11 +636,102 @@ parser_answer* parser(lexer_answer *src,int pos=0,bool binary=true,int parent_pr
             }
         }
     }
-    if((src->result[pos]->t==CHAR_TNUM||src->result[pos]->t==CHAR_TLETT)) {
-        result->pos=pos+1;
-        result->tr=new tree(src->result[pos]->c);
+    return(NULL);
+}
+parser_answer* parse_unary(lexer_answer *src,int pos=0) {
+    if(src->result[pos]->t==CHAR_TOP) {
+        parser_answer* tmpres=parser(src,pos+1,false);
+        if(!ptest(tmpres)) {
+            perr("unary tmpres");
+            return(NULL);
+        }
+        parser_answer* result=new parser_answer;
+        result->tr=new tree(MATH_SUB,tmpres->tr);
+        result->pos=tmpres->pos;
         return(result);
     }
+    return(NULL);
+}
+parser_answer* parse_brackets(lexer_answer *src,int pos=0) {
+    if(src->result[pos]->t==CHAR_TBR1) {
+        parser_answer* tmpres=parser(src,pos+1);
+        if(!ptest(tmpres)) {
+            perr("() tmpres");
+            return(NULL);
+        }
+        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TBR2) {
+            parser_answer* result=new parser_answer;
+            result->pos=tmpres->pos+1;
+            result->tr=tmpres->tr;
+            return(result);
+        }
+        else {
+            cerr << "Warning (parser): Closing bracket not found" << endl;
+            src->errors=true;
+            perr(") bracket");
+            return(NULL);
+        }
+    }
+    return(NULL);
+}
+//parser_answer* parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
+parser_answer* parser(lexer_answer *src,int pos,bool binary,int parent_prio,bool sub_allow) {
+    parser_answer* result=NULL,*tmpres=NULL,*tmpres1=NULL,*tmpres2=NULL;
+    result=new parser_answer;
+    result->pos=pos;
+    result->tr=NULL;
+    if(pos>src->max||src->errors) {
+        perr("pos/errors");
+        return(NULL);
+    }
+    if(binary) {
+        //первый операнд, без бинарных операций
+        tmpres=parser(src,pos,false);
+        if(!ptest(tmpres)) {
+            perr("binary tmpres");
+            return(NULL);
+        }
+        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TOP) {
+            //если следующий за первым - операция
+            if(op_prio(src->result[tmpres->pos]->c)>parent_prio) {
+                //если приоритет текущей операции больше приоритета предыдущей
+                //парсер возвращает второй операнд
+                tmpres1=parser(src,tmpres->pos+1,true,op_prio(src->result[tmpres->pos]->c));
+                if(!ptest(tmpres1)) {
+                    perr("binary tmpres1");
+                    return(NULL);
+                }
+                if(tmpres1->pos<=src->max&&(src->result[tmpres1->pos]->t==CHAR_TOP)&&sub_allow) {
+                    //если следующий - операция и разрешено
+                    tmpres2=parser(src,tmpres1->pos+1,true,0,true);
+                    if(!ptest(tmpres2)) {
+                        perr("binary tmpres2");
+                        return(NULL);
+                    }
+                    result->tr=new tree(
+                            new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr),
+                            src->result[tmpres1->pos]->c,tmpres2->tr);
+                    result->pos=tmpres2->pos;
+                    return(result);
+                }
+                else {
+                    //иначе первый-операция-второй
+                    result->tr=new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr);
+                    result->pos=tmpres1->pos;
+                    return(result);
+                }
+            }
+        }
+        else {
+            result->tr=tmpres->tr;
+            result->pos=tmpres->pos;
+            return(result);
+        }
+    }
+    if((result=parse_brackets(src,pos))!=NULL) return(result);
+    if((result=parse_unary(src,pos))!=NULL) return(result);
+    if((result=parse_function(src,pos))!=NULL) return(result);
+    if((result=parse_atomic(src,pos))!=NULL) return(result);
     return(NULL);
 }
 tree* parse(char* src) {
@@ -1059,6 +1100,73 @@ rule* parsestr(char* str) {
     }
     return(NULL);
 }
+rules* rules_merge(rules* a,rules* b) {
+    rules* res=new rules;
+    res->maxindex=-1;
+    if(a!=NULL&&b!=NULL) {
+        res->r=new rule*[a->maxindex+b->maxindex+3];
+        int i=0;
+        while(i<=a->maxindex) {
+            res->r[++res->maxindex]=a->r[i];
+            i++;
+        }
+        i=0;
+        while(i<=b->maxindex) {
+            res->r[++res->maxindex]=b->r[i];
+            i++;
+        }
+    }
+    return(res);
+}
+char* postrepls_to_string(replacers* a,bool addpipe=true) {
+    int si=0;
+    char* buf="";
+    if(a!=NULL&&a->maxindex>=0) {
+        if(addpipe) {
+            buf=new char[2];
+            buf[0]=MATH_CPOSTREPL;
+            buf[1]=0;
+        }
+        while(si<=a->maxindex) {
+            if(si>0) {
+                buf=stradd(buf,MATH_CPOSTREPLD);
+            }
+            buf=stradd(buf,a->r[si]->l);
+            buf=stradd(buf,MATH_CPOSTREPLDC);
+            buf=stradd(buf,a->r[si]->r->display());
+            si++;
+        }
+    }
+    return(buf);
+}
+rules* parsetable(QTableWidget* a,int type) {
+    int i=0;
+    char* buf=NULL;
+    QTableWidgetItem *i1,*i2,*i3;
+    rules* res=new rules;
+    int c=a->rowCount();
+    res->maxindex=-1;
+    res->r=new rule*[c+1];
+    while(i<c) {
+        if(((i1=a->item(i,0))!=NULL)&&((i2=a->item(i,1))!=NULL)) {
+            buf=i1->text().toAscii().data();
+            buf=stradd(buf,MATH_CCOMMOND);
+            buf=stradd(buf,print_num(type));
+            buf=stradd(buf,MATH_CCOMMOND);
+            buf=stradd(buf,i2->text().toAscii().data());
+            i3=a->item(i,2);
+            if(i3!=NULL&&i3->text()!=NULL) {
+                buf=stradd(buf,MATH_CPOSTREPL);
+                buf=stradd(buf,i3->text().toAscii().data());
+            }
+            if(buf!=NULL) {
+                res->r[++(res->maxindex)]=parsestr(buf);
+            }
+        }
+        i++;
+    }
+    return(res);
+}
 rules* parsestrs(char* str) {
     strings* strs=explode(str,MATH_CLINESD);
     rule* tempr=NULL;
@@ -1085,6 +1193,138 @@ rules* parsestrs(char* str) {
         return(res);
     }
 }
+rules* FRULES=NULL;
+void settings_to_file(rules* R=FRULES,const char* filename=CONFFILE) {
+    FILE *file=fopen(filename,"w");
+    fputs("",file);
+    fclose(file);
+    file=fopen(filename,"a");
+    char* buf=NULL;
+    if(R!=NULL) {
+        fputs(MATH_VARS,file);
+        fputs("\t",file);
+        fputs(MATH_FUNCS,file);
+        fputs("\t",file);
+        fputs(MATH_NUMS,file);
+        fputs("\t",file);
+        fputs(MATH_REPLS,file);
+        fputs("\t",file);
+        fputs(MATH_DEFDIFF,file);
+        fputs("\t",file);
+        fputs(MATH_OPS,file);
+        fputs("\t",file);
+        int i=0;
+        while(i<=MATH_OPLIST->max) {
+            fputs(MATH_OPLIST->strs[i],file);
+            if(i<MATH_OPLIST->max) {
+                fputs(" ",file);
+            }
+            i++;
+        }
+        fputs("\n",file);
+        fputs(print_num(R->maxindex),file);
+        fputs("\n",file);
+        i=0;
+        int si;
+        while(i<=R->maxindex) {
+            buf=R->r[i]->src->display();
+            buf=stradd(buf,MATH_CCOMMOND);
+            buf=stradd(buf,print_num(R->r[i]->op));
+            buf=stradd(buf,MATH_CCOMMOND);
+            buf=stradd(buf,R->r[i]->dest->display());
+            buf=stradd(buf,postrepls_to_string(R->r[i]->postrepl));
+            buf=stradd(buf,MATH_CLINESD);
+            fputs(buf,file);
+            delete[] buf;
+            i++;
+        }
+    }
+    fclose(file);
+}
+void remove_nl(char* a) {
+    if(a[strlen(a)-1]=='\n') {
+       a[strlen(a)-1]=0;
+    }
+}
+void remove_nl(strings* a) {
+    int i=0;
+    while(i<=a->max) {
+        remove_nl(a->strs[i]);
+        i++;
+    }
+}
+void settings_from_file(Ui::Diff* UI,const char* filename=CONFFILE) {
+    FILE *file=fopen(filename, "r");
+    char* buf=new char[BUFLEN];
+    rule* tr=NULL;
+    FRULES=new rules;
+    FRULES->maxindex=-1;
+    buf=fgets(buf,BUFLEN,file);
+    strings* a=explode(buf,'\t');
+    if(a->max==6) {
+        remove_nl(a->strs[6]);
+        MATH_VARS=a->strs[0];
+        MATH_FUNCS=a->strs[1];
+        MATH_NUMS=a->strs[2];
+        MATH_REPLS=a->strs[3];
+        MATH_DEFDIFF=a->strs[4];
+        MATH_OPS=a->strs[5];
+        print_str(a->strs[6]);
+        MATH_OPLIST=explode(a->strs[6],' ');
+        UI->mnums->setText(QString(MATH_NUMS));
+        UI->mall->setText(QString(MATH_FUNCS));
+        UI->mvars->setText(QString(MATH_VARS));
+        UI->mrepl->setText(QString(MATH_REPLS));
+        UI->mvar0->setText(QString(MATH_DEFDIFF));
+        UI->mops1->setText(QString(MATH_OPS));
+        UI->mops->setText(QString(a->strs[6]));
+        cerr << MATH_DEFDIFF << " " << MATH_VARS;
+    }
+    else {
+        cerr << "Warning [settings]: wrong parameters count!" << endl;
+    }
+    buf=fgets(buf,BUFLEN,file);
+    int i=0,m=atoi(buf);
+    FRULES->r=new rule*[m+1];
+    cerr << m << endl;
+    while(fgets(buf,BUFLEN,file)&&FRULES->maxindex<=m) {
+        remove_nl(buf);
+        if((tr=parsestr(buf))!=NULL) {
+            FRULES->r[++FRULES->maxindex]=tr;
+        }
+        i++;
+    }
+    fclose(file);
+}
+void rules_to_table(QTableWidget* a,int type,rules* R=FRULES) {
+    if(R!=NULL&&a!=NULL&&R->r!=NULL) {
+        if(R->maxindex>=0) {
+            a->setRowCount(0);
+            int i=0,si=0;
+            a->setSortingEnabled(false);
+            QTableWidgetItem* ti=NULL;
+            while(i<=R->maxindex) {
+                if(R->r[i]!=NULL&&R->r[i]->op==type) {
+                    a->setRowCount(a->rowCount()+1);
+                    ti=new QTableWidgetItem(QString(R->r[i]->src->display()));
+                    if(ti!=NULL) {
+                        a->setItem(si,0,ti);
+                    }
+                    ti=new QTableWidgetItem(QString(R->r[i]->dest->display()));
+                    if(ti!=NULL) {
+                        a->setItem(si,1,ti);
+                    }
+                    ti=new QTableWidgetItem(QString(postrepls_to_string(R->r[i]->postrepl,false)));
+                    if(ti!=NULL) {
+                        a->setItem(si,2,ti);
+                        si++;
+                    }
+                }
+                i++;
+            }
+        }
+    }
+}
 void printrules(rules* a) {
     if(a!=NULL) {
         int i=0,si=0;
@@ -1093,8 +1333,8 @@ void printrules(rules* a) {
                 if(a->r[i]->op==1) {
                     cerr << "diff";
                 }
-                if(a->r[i]->op==2) {
-                    cerr << "integral";
+                if(a->r[i]->op==0) {
+                    cerr << "easy";
                 }
                 cerr << "(" << a->r[i]->src->display() << ")=" << a->r[i]->dest->display() << endl;
                 if(a->r[i]->postrepl!=NULL) {
@@ -1112,7 +1352,6 @@ void printrules(rules* a) {
         }
     }
 }
-rules* FRULES=NULL;
 bool invariants(trees* a,tree* b) {
     int i=0;
     while(i<=a->max) {
@@ -1269,11 +1508,22 @@ tree* calc(tree* src) {
     }
     return(res);
 }
+tree* rcalc(tree* src) {
+    int stype=src->type();
+    if(stype==TREE_TBINARY) {
+        return(calc(new tree(rcalc(src->geta()),src->getvalue(),rcalc(src->getb()))));
+    }
+    if(stype==TREE_TFUNCTION||stype==TREE_TUNARY) {
+        return(calc(new tree(src->getvalue(),rcalc(src->geta()))));
+    }
+    return(src);
+}
+
 tree* easy(tree* src) {
     cerr << "called easy of " << src->display() << endl;
     int i=0,opc=0;
     tree* res=src,*tmp;
-    int min=src->varcount();
+    int min=src->opcount();
     if(src->type()==TREE_TBINARY) {
         res=new tree(easy(src->geta()),src->getvalue(),easy(src->getb()));
     }
@@ -1282,8 +1532,8 @@ tree* easy(tree* src) {
     }
     trees* vars=getvariants(res,false);
     while(i<=vars->max) {
-        tmp=calc(vars->t[i]);
-        opc=tmp->varcount();
+        tmp=calc(rcalc(vars->t[i]));
+        opc=tmp->opcount();
         cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
         if(opc<min) {
             min=opc;
@@ -1341,7 +1591,7 @@ tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crule
         }
         if(src->type()==TREE_TFUNCTION) {
             i=0;
-            if(str(MATH_OPLIST[operation-1],src->getvalue())) {
+            if(str(MATH_OPLIST->strs[operation-1],src->getvalue())) {
                 return(operate(src->geta(),operation,base,crules));
             }
             tmp1=MATH_VARS;
@@ -1350,7 +1600,7 @@ tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crule
                 tmp=new char[2];
                 tmp[0]=tmp1[i];
                 tmp[1]='\0';
-                name=MATH_OPLIST[operation-1];
+                name=MATH_OPLIST->strs[operation-1];
                 name=stradd(name,tmp);
                 if(str(name,src->getvalue())) {
                     return(operate(src->geta(),operation,tmp,crules));
@@ -1372,8 +1622,7 @@ Diff::Diff(QWidget *parent) :
     ui->setupUi(this);
 }
 
-Diff::~Diff()
-{
+Diff::~Diff() {
     delete ui;
 };
 void Diff::on_button_diff_clicked() {
@@ -1395,28 +1644,21 @@ void Diff::on_button_diff_clicked() {
     ui->line_dest->setPlainText(a);
 }
 void Diff::update_settings() {
-    FRULES=parsestrs(ui->plainTextEdit->toPlainText().toAscii().data());
+    FRULES=rules_merge(parsetable(ui->tableWidget_3,1),parsetable(ui->tableWidget_2,0));
+    MATH_NUMS=strcp(ui->mnums->text().toAscii().data());
     MATH_VARS=strcp(ui->mvars->text().toAscii().data());
     MATH_FUNCS=strcp(ui->mall->text().toAscii().data());
     MATH_REPLS=strcp(ui->mrepl->text().toAscii().data());
     MATH_DEFDIFF=strcp(ui->mvar0->text().toAscii().data());
     MATH_OPS=strcp(ui->mops1->text().toAscii().data());
-    int i=0;
-    strings* tmp=explode(strcp(ui->mops->text().toAscii().data()),' ');
-    if(tmp!=NULL) {
-        if(tmp->max>=0) {
-            MATH_OPLIST=new char*[tmp->max+1];
-            while(i<=tmp->max) {
-                MATH_OPLIST[i]=tmp->strs[i];
-                i++;
-            }
-        }
-    }
+    MATH_OPLIST=explode(strcp(ui->mops->text().toAscii().data()),' ');
+    printrules(FRULES);
 }
 void Diff::on_button_parse_clicked() {
     update_settings();
-}
-void Diff::on_button_integral_clicked() {
+    if(ui->checkBox->isChecked()) {
+        settings_to_file();
+    }
 }
 void Diff::on_button_easy_clicked() {
     tree* src=parse(ui->line_src->toPlainText().toAscii().data());
@@ -1486,10 +1728,12 @@ void Diff::on_pushButton_clicked() {
     ui->testr->setPlainText(a);
     ui->testr1->setPlainText(c);
 }
-void Diff::changeEvent(QEvent *e)
-{
+void Diff::changeEvent(QEvent *e) {
     if(sw<=1) {
         if(sw==1) {
+            settings_from_file(ui);
+            rules_to_table(ui->tableWidget_2,0);
+            rules_to_table(ui->tableWidget_3,1);
             update_settings();
         }
         sw++;
@@ -1503,8 +1747,7 @@ void Diff::changeEvent(QEvent *e)
         break;
     }
 }
-void Diff::on_testv_button_clicked()
-{
+void Diff::on_testv_button_clicked() {
     tree* a=parse(strcp(ui->testv_src->text().toAscii().data()));
     trees* b=getvariants(a);
     char* d="";
@@ -1517,4 +1760,19 @@ void Diff::on_testv_button_clicked()
     QString d1;
     d1=d;
     ui->testv_dest->setPlainText(d1);
+}
+void Diff::on_pushButton_2_clicked() {
+    ui->tableWidget_3->setRowCount(ui->tableWidget_3->rowCount()+1);
+}
+
+void Diff::on_pushButton_3_clicked() {
+    ui->tableWidget_3->setRowCount(ui->tableWidget_3->rowCount()-1);
+}
+
+void Diff::on_pushButton_4_clicked() {
+    ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()+1);
+}
+
+void Diff::on_pushButton_5_clicked() {
+    ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()-1);
 }
