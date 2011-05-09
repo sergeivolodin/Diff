@@ -4,7 +4,7 @@ int main() {
 	cout << "Enter: ";
 	cin >> buf;
 	settings_from_file();
-	tree* src=parse(buf),*dest=NULL;
+	tree* src=parser(lexer(buf)),*dest=NULL;
 	if(src!=NULL) {
 		dest=operate(src,1,MATH_DEFDIFF);
 		if(dest!=NULL) {

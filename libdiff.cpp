@@ -366,10 +366,6 @@ struct replacers {
     replacer** r;
     int maxindex;
 };
-struct parser_answer {
-    int pos;
-    tree* tr;
-};
 struct trees {
     tree** t;
     int max;
@@ -392,7 +388,7 @@ lexer_answer* lexer(char* str) {
             tmp=new char[2];
             tmp[0]=c;
             tmp[1]=0;
-            if(res->max==-1||cstate!=pstate||cstate==CHAR_TBR2) {
+            if(res->max==-1||cstate!=pstate||cstate==CHAR_TBR2||cstate==CHAR_TBR1) {
                 res->result[++(res->max)]=new token;
                 res->result[res->max]->t=cstate;
                 res->result[res->max]->c=tmp;
@@ -407,163 +403,187 @@ lexer_answer* lexer(char* str) {
     res->errors=false;
     return(res);
 }
-bool ptest(parser_answer* src) {
-    if(src!=NULL&&src->tr!=NULL&&src->tr->test()) {
-        return(true);
-    }
-    return(false);
-}
 void perr(const char* a) {
     cout << "Warning (parser/NULL): " << a << endl;
 }
-parser_answer* parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true);
-parser_answer* parse_atomic(lexer_answer *,int);
-parser_answer* parse_function(lexer_answer *,int);
-parser_answer* parse_unary(lexer_answer *,int);
-parser_answer* parse_brackets(lexer_answer *,int);
-parser_answer* parse_atomic(lexer_answer *src,int pos=0) {
-    if((src->result[pos]->t==CHAR_TNUM||src->result[pos]->t==CHAR_TLETT)) {
-        parser_answer* result=new parser_answer;
-        result->pos=pos+1;
-        result->tr=new tree(src->result[pos]->c);
-        return(result);
+bool testbrackets(lexer_answer* src,int pmin=0,int pmax=-1) {
+    if(pmax==-1) pmax=src->max;
+    int bc1=0,bc2=0;
+    while(pmin<=pmax) {
+        if(src->result[pmin]->t==CHAR_TBR1) {
+            bc1++;
+        }
+        if(src->result[pmin]->t==CHAR_TBR2) {
+            bc2++;
+        }
+        pmin++;
     }
-    return(NULL);
+    return(bc1==bc2);
 }
-parser_answer* parse_function(lexer_answer *src,int pos=0) {
-    if(src->result[pos]->t==CHAR_TLETT) {
-        if(((pos+1)<=src->max)&&src->result[pos+1]->t==CHAR_TBR1) {
-            parser_answer* tmpres=parser(src,pos+2);
-            if(!ptest(tmpres)) {
-                perr("func tmpres");
-                return(NULL);
-            }
-            if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TBR2) {
-                parser_answer* result=new parser_answer;
-                //cerr << "parsing function " << src->result[pos]->c << "(" << tmpres->tr->display() << ")" << endl;
-                result->tr=new tree(src->result[pos]->c,tmpres->tr);
-                result->pos=tmpres->pos+1;
-                return(result);
-            }
-            else {
-                if(tmpres->pos<=src->max) {
-                    cerr << "wrong function " << src->result[pos]->c << tmpres->tr->display() << " next=" << src->result[tmpres->pos]->c << endl;
-                }
-                src->errors=true;
-                return(NULL);
-            }
-        }
-    }
-    return(NULL);
-}
-parser_answer* parse_unary(lexer_answer *src,int pos=0) {
-    if(src->result[pos]->t==CHAR_TOP) {
-        parser_answer* tmpres=parser(src,pos+1,false);
-        if(!ptest(tmpres)) {
-            perr("unary tmpres");
-            return(NULL);
-        }
-        parser_answer* result=new parser_answer;
-        result->tr=new tree(MATH_SUB,tmpres->tr);
-        result->pos=tmpres->pos;
-        return(result);
-    }
-    return(NULL);
-}
-parser_answer* parse_brackets(lexer_answer *src,int pos=0) {
-    if(src->result[pos]->t==CHAR_TBR1) {
-        parser_answer* tmpres=parser(src,pos+1);
-        if(!ptest(tmpres)) {
-            perr("() tmpres");
-            return(NULL);
-        }
-        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TBR2) {
-            parser_answer* result=new parser_answer;
-            result->pos=tmpres->pos+1;
-            result->tr=tmpres->tr;
-            return(result);
-        }
-        else {
-            cerr << "Warning (parser): Closing bracket not found" << endl;
-            src->errors=true;
-            perr(") bracket");
-            return(NULL);
-        }
-    }
-    return(NULL);
-}
-//parser_answer* parser(lexer_answer *src,int pos=0,bool binary=true,int parent_prio=0,bool sub_allow=true) {
-parser_answer* parser(lexer_answer *src,int pos,bool binary,int parent_prio,bool sub_allow) {
-    parser_answer* result=NULL,*tmpres=NULL,*tmpres1=NULL,*tmpres2=NULL;
-    result=new parser_answer;
-    result->pos=pos;
-    result->tr=NULL;
-    if(pos>src->max||src->errors) {
-        perr("pos/errors");
-        return(NULL);
-    }
-    if(binary) {
-        //первый операнд, без бинарных операций
-        tmpres=parser(src,pos,false);
-        if(!ptest(tmpres)) {
-            perr("binary tmpres");
-            return(NULL);
-        }
-        if(tmpres->pos<=src->max&&src->result[tmpres->pos]->t==CHAR_TOP) {
-            //если следующий за первым - операция
-            if(op_prio(src->result[tmpres->pos]->c)>parent_prio) {
-                //если приоритет текущей операции больше приоритета предыдущей
-                //парсер возвращает второй операнд
-                tmpres1=parser(src,tmpres->pos+1,true,op_prio(src->result[tmpres->pos]->c));
-                if(!ptest(tmpres1)) {
-                    perr("binary tmpres1");
-                    return(NULL);
-                }
-                if(tmpres1->pos<=src->max&&(src->result[tmpres1->pos]->t==CHAR_TOP)&&sub_allow) {
-                    //если следующий - операция и разрешено
-                    tmpres2=parser(src,tmpres1->pos+1,true,0,true);
-                    if(!ptest(tmpres2)) {
-                        perr("binary tmpres2");
-                        return(NULL);
-                    }
-                    result->tr=new tree(
-                            new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr),
-                            src->result[tmpres1->pos]->c,tmpres2->tr);
-                    result->pos=tmpres2->pos;
-                    return(result);
+int getlast(lexer_answer* src,int type,int pmin=0,int i=-1,bool notinsidebrackets=false,bool nounary=false) {
+    if(i==-1) i=src->max;
+    int bc=0;;
+    while(i>=pmin) {
+        if(src->result[i]->t==CHAR_TBR2) bc++;
+        if(src->result[i]->t==CHAR_TBR1) bc--;
+        if(src->result[i]->t==type) {
+            if((!notinsidebrackets)||(bc==0)) {
+                if(!nounary) {
+                    return(i);
                 }
                 else {
-                    //иначе первый-операция-второй
-                    result->tr=new tree(tmpres->tr,src->result[tmpres->pos]->c,tmpres1->tr);
-                    result->pos=tmpres1->pos;
-                    return(result);
+                    if(i>pmin) {
+                        if(src->result[i-1]->t!=CHAR_TBR1&&src->result[i-1]->t!=CHAR_TOP) {
+                            return(i);
+                        }
+                    }
+                    //"^-3$"
                 }
             }
         }
-        else {
-            result->tr=tmpres->tr;
-            result->pos=tmpres->pos;
-            return(result);
+        i--;
+    }
+    return(-1);
+}
+bool brackets_nospace(lexer_answer* src,int left,int right) {
+    if(src->result[left]->t==CHAR_TBR1&&src->result[right]->t==CHAR_TBR2) {
+        int br=1;
+        left++;
+        while(left<right) {
+            if(src->result[left]->t==CHAR_TBR1) br++;
+            if(src->result[left]->t==CHAR_TBR2) br--;
+            if(br==0) return(false);
+            left++;
         }
     }
-    if((result=parse_brackets(src,pos))!=NULL) return(result);
-    if((result=parse_unary(src,pos))!=NULL) return(result);
-    if((result=parse_function(src,pos))!=NULL) return(result);
-    if((result=parse_atomic(src,pos))!=NULL) return(result);
+    else {
+        return(false);
+    }
+    return(true);
+}
+int minopprio(lexer_answer* src,int pmin=0,int pmax=-1) {
+    if(pmax==-1) pmax=src->max;
+    int minprio=100;
+    int bc=0;
+    while(pmax>=pmin) {
+        if(src->result[pmax]->t==CHAR_TBR2) bc++;
+        if(src->result[pmax]->t==CHAR_TBR1) bc--;
+        if(src->result[pmax]->t==CHAR_TOP) {
+            if(bc==0) {
+                minprio=min(minprio,op_prio(src->result[pmax]->c));
+            }
+        }
+        pmax--;
+    }
+    return(minprio);
+}
+tree* parser(lexer_answer* src,int pmin=0,int pmax=-1,bool binary_allowed=true);
+tree* parser_atomic(lexer_answer* src,int pmin,int pmax) {
+    if(pmin==pmax) {
+        return(new tree(src->result[pmin]->c));
+    }
+    return(NULL);
+}
+tree* parser_brackets(lexer_answer* src,int pmin,int pmax) {
+    if((pmax-pmin)>=2&&src->result[pmin]->t==CHAR_TBR1&&src->result[pmax]->t==CHAR_TBR2&&brackets_nospace(src,pmin,pmax)) {
+        return(parser(src,pmin+1,pmax-1));
+    }
+    return(NULL);
+}
+tree* parser_unary(lexer_answer* src,int pmin,int pmax) {
+    if((pmax-pmin)>=1&&src->result[pmin]->t==CHAR_TOP) {
+        return(new tree(src->result[pmin]->c,parser(src,pmin+1,pmax)));
+    }
+    return(NULL);
+}
+tree* parser_function(lexer_answer* src,int pmin,int pmax) {
+    if((pmax-pmin)>=3&&src->result[pmin]->t==CHAR_TLETT&&src->result[pmin+1]->t==CHAR_TBR1&&src->result[pmax]->t==CHAR_TBR2&&brackets_nospace(src,pmin+1,pmax)) {
+        return(new tree(src->result[pmin]->c,parser(src,pmin+2,pmax-1)));
+    }
+    return(NULL);
+}
+tree* parser(lexer_answer* src,int pmin,int pmax,bool binary_allowed) {
+    //разрешено парсить [pmin,pmax]
+    if(pmax==-1) pmax=src->max;
+    if(pmax<pmin) return(NULL);
+    cerr << "min=" << pmin << " max=" << pmax << endl;
+    int tmp;
+    /*if(!testbrackets(src,pmin,pmax)) {
+        tmp=getlast(src,CHAR_TBR2,pmin,pmax)-1;
+        if(tmp!=-1) {
+            pmax=min(pmax,tmp);
+        }
+    }*/
+    //pmin...op_pos...pmax
+    int op_pos=getlast(src,CHAR_TOP,pmin,pmax,true,true);
+    tree* r1=NULL,*r2=NULL;
+    if(op_pos!=-1) {
+        if(binary_allowed) {
+            bool btest=false;
+            while(!btest) {
+                if(op_pos!=-1) {
+                    cerr << "op_pos=" << op_pos << "(" << src->result[op_pos]->c << ")" << endl;
+                    if((r1=parser(src,pmin,op_pos-1,false))!=NULL) {
+                        cerr << "r1_nobin" << endl;
+                        btest=true;
+                    }
+                    else {
+                        if(minopprio(src,pmin,op_pos-1)>=op_prio(src->result[op_pos]->c)) {
+                            btest=true;
+                            r1=parser(src,pmin,op_pos-1);
+                            cerr << "r1 compare+ ";
+                            //cerr << "r1=" << r1->display() << endl;
+                        }
+                        else {
+                            cerr << "r1 compare- cur_op=" << src->result[op_pos]->c << " prio=" << op_prio(src->result[op_pos]->c) << " minopprio_left=" << minopprio(src,pmin,op_pos-1) << endl;
+                        }
+                    }
+                    if(btest) {
+                        if((r2=parser(src,op_pos+1,pmax,false))!=NULL) {
+                            cerr << "r2_nobin" << endl;
+                        }
+                        else {
+                            cerr << "r2 plain" << endl;
+                            r2=parser(src,op_pos+1,pmax);
+                        }
+                    }
+                    else {
+                        op_pos=getlast(src,CHAR_TOP,pmin,op_pos-1,true,true);
+                        continue;
+                    }
+                    if(btest&&r1!=NULL&&r2!=NULL) {
+                        return(new tree(r1,src->result[op_pos]->c,r2));
+                    }
+                    else {
+                        return(NULL);
+                    }
+                }
+                else {
+                    break;
+                }
+            }
+        }
+    }
+    else {
+        if((r1=parser_function(src,pmin,pmax))!=NULL) return(r1);
+        if((r1=parser_unary(src,pmin,pmax))!=NULL) return(r1);
+        if((r1=parser_brackets(src,pmin,pmax))!=NULL) return(r1);
+        if((r1=parser_atomic(src,pmin,pmax))!=NULL) return(r1);
+    }
     return(NULL);
 }
 tree* parse(char* src) {
     if(str(src,"")) {
         return(NULL);
     }
-    lexer_answer* a=lexer(src);;//,*a_src;
-    parser_answer* b=parser(a);
-    //a_src=lexer(src);
-    //a=lexer_normal(a_src)
-    if(!ptest(b)) {
-        return(NULL);
+    lexer_answer* a=lexer(src);
+    if(a!=NULL) {
+        tree* b=parser(a);
+        if(b!=NULL&&b->test()) {
+            return(b);
+        }
     }
-    return(b->tr->copymem());
+    return(NULL);
 }
 unsigned int pattern_count_funcs(tree* p) {
     int ptype=p->type();

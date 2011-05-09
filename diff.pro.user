@@ -76,16 +76,16 @@
   <valuemap type="QVariantMap">
    <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString">Debug</value>
    <valuelist key="abstractProcess.Environment" type="QVariantList">
-    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-OXd98gwBon,guid=94f618e965a18ced50505d460000002a</value>
-    <value type="QString">DESKTOP_AUTOSTART_ID=10bfc42317e1f23800130381976444883500000025620001</value>
+    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-TBOHpjd4hE,guid=c4a4aa71beab9babb1e42dd600000047</value>
+    <value type="QString">DESKTOP_AUTOSTART_ID=10251bd347acbe550113048713499258900000026900001</value>
     <value type="QString">DESKTOP_SESSION=gnome</value>
     <value type="QString">DISPLAY=:0.0</value>
     <value type="QString">GDMSESSION=gnome</value>
     <value type="QString">GDM_KEYBOARD_LAYOUT=us</value>
     <value type="QString">GDM_LANG=ru_RU.utf8</value>
     <value type="QString">GNOME_DESKTOP_SESSION_ID=this-is-deprecated</value>
-    <value type="QString">GNOME_KEYRING_CONTROL=/tmp/keyring-J17Jj9</value>
-    <value type="QString">GPG_AGENT_INFO=/tmp/seahorse-WSX8nc/S.gpg-agent:2610:1</value>
+    <value type="QString">GNOME_KEYRING_CONTROL=/tmp/keyring-DpEGkZ</value>
+    <value type="QString">GPG_AGENT_INFO=/tmp/seahorse-0jZmfl/S.gpg-agent:2738:1</value>
     <value type="QString">GTK_MODULES=canberra-gtk-module</value>
     <value type="QString">GTK_RC_FILES=/etc/gtk/gtkrc:/home/seriy/.gtkrc-1.2-gnome2</value>
     <value type="QString">HOME=/home/seriy</value>
@@ -96,17 +96,17 @@
     <value type="QString">PATH=/usr/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games</value>
     <value type="QString">PWD=/home/seriy</value>
     <value type="QString">QTDIR=/usr/share/qt4</value>
-    <value type="QString">SESSION_MANAGER=local/seriy-laptop:@/tmp/.ICE-unix/2562,unix/seriy-laptop:/tmp/.ICE-unix/2562</value>
+    <value type="QString">SESSION_MANAGER=local/seriy-laptop:@/tmp/.ICE-unix/2690,unix/seriy-laptop:/tmp/.ICE-unix/2690</value>
     <value type="QString">SHELL=/bin/bash</value>
     <value type="QString">SHLVL=1</value>
-    <value type="QString">SSH_AGENT_PID=2596</value>
-    <value type="QString">SSH_AUTH_SOCK=/tmp/keyring-J17Jj9/ssh</value>
+    <value type="QString">SSH_AGENT_PID=2724</value>
+    <value type="QString">SSH_AUTH_SOCK=/tmp/keyring-DpEGkZ/ssh</value>
     <value type="QString">USER=seriy</value>
     <value type="QString">USERNAME=seriy</value>
     <value type="QString">WINDOWPATH=7</value>
-    <value type="QString">XAUTHORITY=/var/run/gdm3/auth-for-seriy-Vokybu/database</value>
+    <value type="QString">XAUTHORITY=/var/run/gdm3/auth-for-seriy-wAvx0X/database</value>
     <value type="QString">XDG_DATA_DIRS=/usr/share/gnome:/usr/share/gdm/:/usr/local/share/:/usr/share/</value>
-    <value type="QString">XDG_SESSION_COOKIE=591e356b25ea774f370cc00a0000000e-1303819761.225014-960322393</value>
+    <value type="QString">XDG_SESSION_COOKIE=591e356b25ea774f370cc00a0000000e-1304871346.978041-314209790</value>
     <value type="QString">_=/usr/bin/docky</value>
    </valuelist>
    <valuelist key="abstractProcess.arguments" type="QVariantList">
@@ -126,16 +126,16 @@
   <valuemap type="QVariantMap">
    <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString">Debug</value>
    <valuelist key="abstractProcess.Environment" type="QVariantList">
-    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-OXd98gwBon,guid=94f618e965a18ced50505d460000002a</value>
-    <value type="QString">DESKTOP_AUTOSTART_ID=10bfc42317e1f23800130381976444883500000025620001</value>
+    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-TBOHpjd4hE,guid=c4a4aa71beab9babb1e42dd600000047</value>
+    <value type="QString">DESKTOP_AUTOSTART_ID=10251bd347acbe550113048713499258900000026900001</value>
     <value type="QString">DESKTOP_SESSION=gnome</value>
     <value type="QString">DISPLAY=:0.0</value>
     <value type="QString">GDMSESSION=gnome</value>
     <value type="QString">GDM_KEYBOARD_LAYOUT=us</value>
     <value type="QString">GDM_LANG=ru_RU.utf8</value>
     <value type="QString">GNOME_DESKTOP_SESSION_ID=this-is-deprecated</value>
-    <value type="QString">GNOME_KEYRING_CONTROL=/tmp/keyring-J17Jj9</value>
-    <value type="QString">GPG_AGENT_INFO=/tmp/seahorse-WSX8nc/S.gpg-agent:2610:1</value>
+    <value type="QString">GNOME_KEYRING_CONTROL=/tmp/keyring-DpEGkZ</value>
+    <value type="QString">GPG_AGENT_INFO=/tmp/seahorse-0jZmfl/S.gpg-agent:2738:1</value>
     <value type="QString">GTK_MODULES=canberra-gtk-module</value>
     <value type="QString">GTK_RC_FILES=/etc/gtk/gtkrc:/home/seriy/.gtkrc-1.2-gnome2</value>
     <value type="QString">HOME=/home/seriy</value>
@@ -146,17 +146,17 @@
     <value type="QString">PATH=/usr/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games</value>
     <value type="QString">PWD=/home/seriy</value>
     <value type="QString">QTDIR=/usr/share/qt4</value>
-    <value type="QString">SESSION_MANAGER=local/seriy-laptop:@/tmp/.ICE-unix/2562,unix/seriy-laptop:/tmp/.ICE-unix/2562</value>
+    <value type="QString">SESSION_MANAGER=local/seriy-laptop:@/tmp/.ICE-unix/2690,unix/seriy-laptop:/tmp/.ICE-unix/2690</value>
     <value type="QString">SHELL=/bin/bash</value>
     <value type="QString">SHLVL=1</value>
-    <value type="QString">SSH_AGENT_PID=2596</value>
-    <value type="QString">SSH_AUTH_SOCK=/tmp/keyring-J17Jj9/ssh</value>
+    <value type="QString">SSH_AGENT_PID=2724</value>
+    <value type="QString">SSH_AUTH_SOCK=/tmp/keyring-DpEGkZ/ssh</value>
     <value type="QString">USER=seriy</value>
     <value type="QString">USERNAME=seriy</value>
     <value type="QString">WINDOWPATH=7</value>
-    <value type="QString">XAUTHORITY=/var/run/gdm3/auth-for-seriy-Vokybu/database</value>
+    <value type="QString">XAUTHORITY=/var/run/gdm3/auth-for-seriy-wAvx0X/database</value>
     <value type="QString">XDG_DATA_DIRS=/usr/share/gnome:/usr/share/gdm/:/usr/local/share/:/usr/share/</value>
-    <value type="QString">XDG_SESSION_COOKIE=591e356b25ea774f370cc00a0000000e-1303819761.225014-960322393</value>
+    <value type="QString">XDG_SESSION_COOKIE=591e356b25ea774f370cc00a0000000e-1304871346.978041-314209790</value>
     <value type="QString">_=/usr/bin/docky</value>
    </valuelist>
    <value key="abstractProcess.IgnoreReturnValue" type="bool">false</value>

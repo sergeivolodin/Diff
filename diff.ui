@@ -51,7 +51,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_main">
      <attribute name="title">
@@ -177,7 +177,7 @@
         </sizepolicy>
        </property>
        <property name="plainText">
-        <string>sin(cos(x))+tg(x)+x+(1/x)+(10*x)</string>
+        <string>(a+b)^3-f-(f-f)-f</string>
        </property>
       </widget>
      </widget>

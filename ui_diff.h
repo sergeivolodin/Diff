@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Tue Apr 26 16:53:59 2011
+** Created: Mon May 9 15:25:51 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -434,7 +434,7 @@ public:
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
 
-        tabWidget->setCurrentIndex(1);
+        tabWidget->setCurrentIndex(0);
         tabWidget_2->setCurrentIndex(0);
 
 
@@ -451,7 +451,7 @@ public:
         button_show->setText(QApplication::translate("Diff", "\320\237\320\276\320\272\320\260\320\267\320\260\321\202\321\214", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("Diff", "\320\240\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202:", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("Diff", "\320\222\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265:", 0, QApplication::UnicodeUTF8));
-        line_src->setPlainText(QApplication::translate("Diff", "sin(cos(x))+tg(x)+x+(1/x)+(10*x)", 0, QApplication::UnicodeUTF8));
+        line_src->setPlainText(QApplication::translate("Diff", "(a+b)^3-f-(f-f)-f", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("Diff", "\320\236\321\201\320\275\320\276\320\262\320\260\320\275\320\270\320\265", 0, QApplication::UnicodeUTF8));
         line_base->setText(QApplication::translate("Diff", "x", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_main), QApplication::translate("Diff", "\320\236\321\201\320\275\320\276\320\262\320\275\320\276\320\265 \320\276\320\272\320\275\320\276", 0, QApplication::UnicodeUTF8));
