@@ -304,7 +304,10 @@ private:
             return(1+a->opcount());
         }
         else if(ttype==TREE_TBINARY) {
-            return(1+a->opcount()+b->opcount());
+            return(2+a->opcount()+b->opcount());
+        }
+        else if(ttype==TREE_TVAR) {
+            return(1);
         }
         else {
             return(0);
@@ -342,15 +345,15 @@ struct trees {
     tree** t;
     int max;
 };
-lexer_answer* lexer(char* str) {
+lexer_answer* lexer(char* cstr) {
     int i=0,cstate=0,pstate=0;
-    int len=strlen(str);
+    int len=strlen(cstr);
     char c,*tmp;
     lexer_answer* res=new lexer_answer;
     res->result=new token*[len];
     res->max=-1;
     while(i<len) {
-        c=str[i];
+        c=cstr[i];
         if(c=='.') c=',';
         cstate=char_state(c);
         if(cstate==0) {
@@ -360,7 +363,7 @@ lexer_answer* lexer(char* str) {
             tmp=new char[2];
             tmp[0]=c;
             tmp[1]=0;
-            if(res->max==-1||cstate!=pstate||cstate==CHAR_TBR2||cstate==CHAR_TBR1) {
+            if(res->max==-1||cstate!=pstate||cstate==CHAR_TBR2||cstate==CHAR_TBR1||cstate==CHAR_TOP) {
                 res->result[++(res->max)]=new token;
                 res->result[res->max]->t=cstate;
                 res->result[res->max]->c=tmp;
@@ -478,7 +481,6 @@ tree* parser(lexer_answer* src,int pmin,int pmax,bool binary_allowed) {
     //разрешено парсить [pmin,pmax]
     if(pmax==-1) pmax=src->max;
     if(pmax<pmin) return(NULL);
-    cerr << "min=" << pmin << " max=" << pmax << endl;
     int tmp;
     /*if(!testbrackets(src,pmin,pmax)) {
         tmp=getlast(src,CHAR_TBR2,pmin,pmax)-1;
@@ -494,28 +496,19 @@ tree* parser(lexer_answer* src,int pmin,int pmax,bool binary_allowed) {
             bool btest=false;
             while(!btest) {
                 if(op_pos!=-1) {
-                    cerr << "op_pos=" << op_pos << "(" << src->result[op_pos]->c << ")" << endl;
                     if((r1=parser(src,pmin,op_pos-1,false))!=NULL) {
-                        cerr << "r1_nobin" << endl;
                         btest=true;
                     }
                     else {
                         if(minopprio(src,pmin,op_pos-1)>=op_prio(src->result[op_pos]->c)) {
                             btest=true;
                             r1=parser(src,pmin,op_pos-1);
-                            cerr << "r1 compare+ ";
-                            //cerr << "r1=" << r1->display() << endl;
-                        }
-                        else {
-                            cerr << "r1 compare- cur_op=" << src->result[op_pos]->c << " prio=" << op_prio(src->result[op_pos]->c) << " minopprio_left=" << minopprio(src,pmin,op_pos-1) << endl;
                         }
                     }
                     if(btest) {
                         if((r2=parser(src,op_pos+1,pmax,false))!=NULL) {
-                            cerr << "r2_nobin" << endl;
                         }
                         else {
-                            cerr << "r2 plain" << endl;
                             r2=parser(src,op_pos+1,pmax);
                         }
                     }
@@ -754,7 +747,6 @@ replacers* pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF,rep
             //            cerr << "mixed_type=";
             if(strchar(MATH_FUNCS,spattern->getvalue())) {
                 //                cerr << "funcs ";
-                cerr << "spattern=" << spattern->display() << " stree=" << stree->display() << endl;
                 if(!replacer_add(crepl,spattern->getvalue(),stree)) {
                     //                    cerr << "WRONGREPL" << endl;
                     return(NULL);
@@ -1224,6 +1216,7 @@ tree* calc(tree* src) {
             //cerr << "a+b ";
             lset=true;
             l=atof(src->geta()->getvalue());
+            //cerr << "{" << src->geta()->getvalue() << "}";
         }
         if(src->getb()->isleaf()&&char_isnum(src->getb()->getvalue()[0])) {
             //cerr << "a+b ";
@@ -1240,7 +1233,7 @@ tree* calc(tree* src) {
         }
         if(lset&&rset) {
             if(str(src->getvalue(),"+")) {
-                //cerr << "+";
+                //cerr << "[" << l << "+" << r << "]";
                 res=new tree(print_num(l+r));
             }
             if(str(src->getvalue(),"-")) {
