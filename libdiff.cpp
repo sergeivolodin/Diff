@@ -1,4 +1,6 @@
 #include <iostream>
+#include <assert.h>
+#include "default.cpp"
 #include "strs.cpp"
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,10 +9,10 @@
 #include <string.h>
 #include <strings.h>
 #define BUFLEN 1000
+
 #define CONFFILE ".diff_program"
 using namespace std;
 /*
-  расстановка скобок в парсере
   упрощение
 */
 const int CHAR_TNUM=1; //numbers: 0-9.
@@ -109,54 +111,24 @@ private:
         char* res=NULL;
         char* tmp_=NULL,*tmp2=NULL;
         if(value==NULL) {return(NULL);}
-        if(leaf==true) {
+        if(type()==TREE_TNUM||type()==TREE_TVAR) {
             res=strcp(value);
         }
-        else if(b!=NULL) {
-            if(a==NULL) {return(NULL);}
-            res=NULL;
-            if((tmp=(!a->leaf))) {
-                res=strdup(MATH_BR1);
-                tmp_=a->display_math();
-                if(tmp_==NULL) {
-                    return(NULL);
-                }
-                res=stradd(res,tmp_);
-            }
-            else {
-                tmp_=a->display_math();
-                if(tmp_==NULL) {
-                    return(NULL);
-                }
-                res=tmp_;
-            }
-            if(tmp) {
-                res=stradd(res,MATH_BR2);
-            }
-            res=stradd(res,value);
-            if((tmp=(!b->leaf))) {
-                res=stradd(res,MATH_BR1);
-            }
-            tmp_=b->display_math();
-            if(tmp_==NULL) {
-                return(NULL);
-            }
-            res=stradd(res,tmp_);
-            if(tmp) {
-                res=stradd(res,MATH_BR2);
-            }
+        if(type()==TREE_TUNARY||type()==TREE_TFUNCTION) {
+            res=strcp(value);
+            if(tmp=(a->type()==TREE_TBINARY||type()==TREE_TFUNCTION||type()==TREE_TUNARY)) res=stradd(res,MATH_BR1);
+            res=stradd(res,a->display_math());
+            if(tmp) res=stradd(res,MATH_BR2);
         }
-        else {
-            tmp_=new char[strlen(value)];
-            strcpy(tmp_,value);
-            res=tmp_;
-            res=stradd(res,MATH_BR1);
-            tmp2=a->display_math();
-            if(tmp2==NULL) {
-                return(NULL);
-            }
-            res=stradd(res,tmp2);
-            res=stradd(res,MATH_BR2);
+        if(type()==TREE_TBINARY) {
+            if(tmp=(a->type()==TREE_TBINARY&&(op_prio(a->value)<op_prio(value)))) res=strcp(MATH_BR1);
+            else res="";
+            res=stradd(res,a->display_math());
+            if(tmp) res=stradd(res,MATH_BR2);
+            res=stradd(res,value);
+            if(tmp=(b->type()==TREE_TBINARY&&(op_prio(b->value)<op_prio(value)))) res=stradd(res,strcp(MATH_BR1));
+            res=stradd(res,b->display_math());
+            if(tmp) res=stradd(res,MATH_BR2);
         }
         return(res);
     }
@@ -379,7 +351,7 @@ lexer_answer* lexer(char* str) {
     res->max=-1;
     while(i<len) {
         c=str[i];
-        if(c==',') c='.';
+        if(c=='.') c=',';
         cstate=char_state(c);
         if(cstate==0) {
             cerr << "Warning (lexer): wrong symbol '" << c << "' at" << i << endl;
@@ -782,6 +754,7 @@ replacers* pattern(tree* stree, tree* spattern,const char* base=MATH_DEFDIFF,rep
             //            cerr << "mixed_type=";
             if(strchar(MATH_FUNCS,spattern->getvalue())) {
                 //                cerr << "funcs ";
+                cerr << "spattern=" << spattern->display() << " stree=" << stree->display() << endl;
                 if(!replacer_add(crepl,spattern->getvalue(),stree)) {
                     //                    cerr << "WRONGREPL" << endl;
                     return(NULL);
@@ -1052,37 +1025,58 @@ void settings_to_file(rules* R=FRULES,const char* filename=CONFFILE) {
 }
 void settings_from_file(const char* filename=CONFFILE) {
     FILE *file=fopen(filename, "r");
-    char* buf=new char[BUFLEN];
-    rule* tr=NULL;
-    FRULES=new rules;
-    FRULES->maxindex=-1;
-    buf=fgets(buf,BUFLEN,file);
-    strings* a=explode(buf,'\t');
-    if(a->max==6) {
-        remove_nl(a->strs[6]);
-        MATH_VARS=a->strs[0];
-        MATH_FUNCS=a->strs[1];
-        MATH_NUMS=a->strs[2];
-        MATH_REPLS=a->strs[3];
-        MATH_DEFDIFF=a->strs[4];
-        MATH_OPS=a->strs[5];
-        //print_str(a->strs[6]);
-        MATH_OPLIST=explode(a->strs[6],' ');
+    bool read_ok=true;
+    if(file==NULL) {
+        read_ok=false;
     }
     else {
-        cerr << "Warning [settings]: wrong parameters count!" << endl;
-    }
-    buf=fgets(buf,BUFLEN,file);
-    int i=0,m=atoi(buf);
-    FRULES->r=new rule*[m+1];
-    while(fgets(buf,BUFLEN,file)&&FRULES->maxindex<=m) {
-        remove_nl(buf);
-        if((tr=parsestr(buf))!=NULL) {
-            FRULES->r[++FRULES->maxindex]=tr;
+        char* buf=new char[BUFLEN];
+        rule* tr=NULL;
+        FRULES=new rules;
+        FRULES->maxindex=-1;
+        buf=fgets(buf,BUFLEN,file);
+        if(buf!=NULL&&buf[0]!=0) {
+            strings* a=explode(buf,'\t');
+            if(a->max==6) {
+                remove_nl(a->strs[6]);
+                MATH_VARS=a->strs[0];
+                MATH_FUNCS=a->strs[1];
+                MATH_NUMS=a->strs[2];
+                MATH_REPLS=a->strs[3];
+                MATH_DEFDIFF=a->strs[4];
+                MATH_OPS=a->strs[5];
+                //print_str(a->strs[6]);
+                MATH_OPLIST=explode(a->strs[6],' ');
+                buf=fgets(buf,BUFLEN,file);
+                int i=0,m=atoi(buf);
+                if(m>=0) {
+                    FRULES->r=new rule*[m+1];
+                    while(fgets(buf,BUFLEN,file)&&FRULES->maxindex<=m) {
+                        remove_nl(buf);
+                        if((tr=parsestr(buf))!=NULL) {
+                            FRULES->r[++FRULES->maxindex]=tr;
+                        }
+                        i++;
+                    }
+                }
+            }
+            else {
+                cerr << "Warning [settings]: wrong parameters count!" << endl;
+                read_ok=false;
+            }
         }
-        i++;
+        else {
+            read_ok=false;
+        }
+        fclose(file);
     }
-    fclose(file);
+    if(!read_ok) {
+        cerr << "writing";
+        file=fopen(filename,"w");
+        fwrite(DRULES,1,sizeof(DRULES),file);
+        fclose(file);
+        settings_from_file(filename);
+    }
 }
 void printrules(rules* a) {
     if(a!=NULL) {
@@ -1221,24 +1215,30 @@ tree* easy_old(tree* src) {
 }
 tree* calc(tree* src) {
     float tmp_float,l=0,r=0;
-    bool set=false;
+    bool lset=false,rset=false;
     tree* res=src;
     if(src->type()==TREE_TBINARY) {
         //cerr << "calc " << src->display() << ": ";
-        if(src->geta()->isleaf()&&src->getb()->isleaf()) {
+        //src->getb()->isleaf()
+        if(src->geta()->isleaf()&&char_isnum(src->geta()->getvalue()[0])) {
             //cerr << "a+b ";
-            if(char_isnum(src->geta()->getvalue()[0])&&char_isnum(src->getb()->getvalue()[0])) {
-                l=atof(src->geta()->getvalue());
-                r=atof(src->getb()->getvalue());
-                set=true;
-            }
+            lset=true;
+            l=atof(src->geta()->getvalue());
         }
-        else if((!src->geta()->isleaf())&&(!src->getb()->isleaf())&&str(src->geta()->getvalue(),"-")&&str(src->getb()->getvalue(),"-")&&src->geta()->geta()->isleaf()&&src->getb()->geta()->isleaf()) {
+        if(src->getb()->isleaf()&&char_isnum(src->getb()->getvalue()[0])) {
+            //cerr << "a+b ";
+            rset=true;
+            r=atof(src->getb()->getvalue());
+        }
+        if((src->geta()->type()==TREE_TUNARY)&&str(src->geta()->getvalue(),MATH_SUB)&&char_isnum(src->geta()->geta()->getvalue()[0])) {
             l=-atof(src->geta()->geta()->getvalue());
-            r=-atof(src->getb()->geta()->getvalue());
-            set=true;
+            lset=true;
         }
-        if(set) {
+        if((src->getb()->type()==TREE_TUNARY)&&str(src->getb()->getvalue(),MATH_SUB)&&char_isnum(src->getb()->geta()->getvalue()[0])) {
+            r=-atof(src->getb()->geta()->getvalue());
+            rset=true;
+        }
+        if(lset&&rset) {
             if(str(src->getvalue(),"+")) {
                 //cerr << "+";
                 res=new tree(print_num(l+r));
@@ -1279,7 +1279,6 @@ tree* rcalc(tree* src) {
 }
 
 tree* easy(tree* src) {
-    //cerr << "called easy of " << src->display() << endl;
     int i=0,opc=0;
     tree* res=src,*tmp;
     int min=src->opcount();
@@ -1293,7 +1292,6 @@ tree* easy(tree* src) {
     while(i<=vars->max) {
         tmp=calc(rcalc(vars->t[i]));
         opc=tmp->opcount();
-        //cerr << i << " of " << vars->max << ": " << vars->t[i]->display() << " (" << opc << ")" << endl;
         if(opc<min) {
             min=opc;
             res=tmp;

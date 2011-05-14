@@ -13,7 +13,6 @@ unsigned int sw=0;
 rules* parsetable(QTableWidget* a,int type) {
     int i=0;
     char* buf=NULL;
-
     QTableWidgetItem *i1,*i2,*i3;
     rules* res=new rules;
     int c=a->rowCount();
@@ -211,7 +210,7 @@ void Diff::changeEvent(QEvent *e) {
 }
 void Diff::on_testv_button_clicked() {
     tree* a=parse(strcp(ui->testv_src->text().toAscii().data()));
-    trees* b=getvariants(a);
+    trees* b=getvariants(a,true);
     char* d="";
     int i=0;
     while(i<=b->max) {

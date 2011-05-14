@@ -177,7 +177,7 @@
         </sizepolicy>
        </property>
        <property name="plainText">
-        <string>(a+b)^3-f-(f-f)-f</string>
+        <string>sin(x+cos(x)^(x+3))+cos(tg(x))+erf(x)</string>
        </property>
       </widget>
      </widget>
