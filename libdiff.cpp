@@ -106,7 +106,7 @@ int op_prio(char* a) {
 }
 class tree {
 private:
-    char* display_math() {
+    char* display_math(bool brackets=false) {
         bool tmp;
         char* res=NULL;
         char* tmp_=NULL,*tmp2=NULL;
@@ -116,17 +116,17 @@ private:
         }
         if(type()==TREE_TUNARY||type()==TREE_TFUNCTION) {
             res=strcp(value);
-            if(tmp=(a->type()==TREE_TBINARY||type()==TREE_TFUNCTION||type()==TREE_TUNARY)) res=stradd(res,MATH_BR1);
+            if(tmp=(brackets||(a->type()==TREE_TBINARY||type()==TREE_TFUNCTION||type()==TREE_TUNARY))) res=stradd(res,MATH_BR1);
             res=stradd(res,a->display_math());
             if(tmp) res=stradd(res,MATH_BR2);
         }
         if(type()==TREE_TBINARY) {
-            if(tmp=(a->type()==TREE_TBINARY&&(op_prio(a->value)<op_prio(value)))) res=strcp(MATH_BR1);
+            if(tmp=(brackets||(a->type()==TREE_TBINARY&&(op_prio(a->value)<op_prio(value))))) res=strcp(MATH_BR1);
             else res="";
             res=stradd(res,a->display_math());
             if(tmp) res=stradd(res,MATH_BR2);
             res=stradd(res,value);
-            if(tmp=(b->type()==TREE_TBINARY&&(op_prio(b->value)<op_prio(value)))) res=stradd(res,strcp(MATH_BR1));
+            if(tmp=(brackets||(b->type()==TREE_TBINARY&&(op_prio(b->value)<op_prio(value))))) res=stradd(res,strcp(MATH_BR1));
             res=stradd(res,b->display_math());
             if(tmp) res=stradd(res,MATH_BR2);
         }
