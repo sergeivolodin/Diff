@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'diff.h'
 **
-** Created: Fri Jan 21 19:08:53 2011
+** Created: Tue Apr 26 16:54:25 2011
 **      by: The Qt Meta Object Compiler version 62 (Qt 4.6.3)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_Diff[] = {
        4,       // revision
        0,       // classname
        0,    0, // classinfo
-       6,   14, // methods
+      10,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -32,22 +32,30 @@ static const uint qt_meta_data_Diff[] = {
 
  // slots: signature, parameters, type, tag, flags
        6,    5,    5,    5, 0x08,
-      30,    5,    5,    5, 0x08,
-      56,    5,    5,    5, 0x08,
-      81,    5,    5,    5, 0x08,
-     106,    5,    5,    5, 0x08,
-     131,    5,    5,    5, 0x08,
+      32,    5,    5,    5, 0x08,
+      58,    5,    5,    5, 0x08,
+      84,    5,    5,    5, 0x08,
+     110,    5,    5,    5, 0x08,
+     136,    5,    5,    5, 0x08,
+     160,    5,    5,    5, 0x08,
+     186,    5,    5,    5, 0x08,
+     211,    5,    5,    5, 0x08,
+     236,    5,    5,    5, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Diff[] = {
-    "Diff\0\0on_pushButton_clicked()\0"
+    "Diff\0\0on_pushButton_5_clicked()\0"
+    "on_pushButton_4_clicked()\0"
+    "on_pushButton_3_clicked()\0"
+    "on_pushButton_2_clicked()\0"
+    "on_testv_button_clicked()\0"
+    "on_pushButton_clicked()\0"
     "on_button_parse_clicked()\0"
     "on_button_diff_clicked()\0"
     "on_button_show_clicked()\0"
     "on_button_easy_clicked()\0"
-    "on_button_integral_clicked()\0"
 };
 
 const QMetaObject Diff::staticMetaObject = {
@@ -79,15 +87,19 @@ int Diff::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: on_pushButton_clicked(); break;
-        case 1: on_button_parse_clicked(); break;
-        case 2: on_button_diff_clicked(); break;
-        case 3: on_button_show_clicked(); break;
-        case 4: on_button_easy_clicked(); break;
-        case 5: on_button_integral_clicked(); break;
+        case 0: on_pushButton_5_clicked(); break;
+        case 1: on_pushButton_4_clicked(); break;
+        case 2: on_pushButton_3_clicked(); break;
+        case 3: on_pushButton_2_clicked(); break;
+        case 4: on_testv_button_clicked(); break;
+        case 5: on_pushButton_clicked(); break;
+        case 6: on_button_parse_clicked(); break;
+        case 7: on_button_diff_clicked(); break;
+        case 8: on_button_show_clicked(); break;
+        case 9: on_button_easy_clicked(); break;
         default: ;
         }
-        _id -= 6;
+        _id -= 10;
     }
     return _id;
 }
