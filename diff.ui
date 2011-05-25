@@ -60,23 +60,32 @@
      <widget class="QWidget" name="horizontalLayoutWidget_3">
       <property name="geometry">
        <rect>
-        <x>0</x>
-        <y>90</y>
-        <width>631</width>
-        <height>84</height>
+        <x>160</x>
+        <y>80</y>
+        <width>314</width>
+        <height>41</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <property name="sizeConstraint">
-        <enum>QLayout::SetMaximumSize</enum>
+        <enum>QLayout::SetFixedSize</enum>
        </property>
        <item>
         <widget class="QPushButton" name="button_diff">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
          </property>
          <property name="text">
           <string>Производная</string>
@@ -86,10 +95,16 @@
        <item>
         <widget class="QPushButton" name="button_easy">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
          </property>
          <property name="text">
           <string>Упростить</string>
@@ -102,10 +117,16 @@
           <bool>true</bool>
          </property>
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>100</width>
+           <height>0</height>
+          </size>
          </property>
          <property name="text">
           <string>Показать</string>
@@ -117,8 +138,8 @@
      <widget class="QGroupBox" name="groupBox_2">
       <property name="geometry">
        <rect>
-        <x>90</x>
-        <y>200</y>
+        <x>0</x>
+        <y>170</y>
         <width>541</width>
         <height>111</height>
        </rect>
@@ -181,42 +202,6 @@
        </property>
       </widget>
      </widget>
-     <widget class="QWidget" name="verticalLayoutWidget_2">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>170</y>
-        <width>186</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Основание</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="line_base">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>x</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
     </widget>
     <widget class="QWidget" name="tab_settings">
      <attribute name="title">
@@ -241,7 +226,7 @@
         <x>473</x>
         <y>26</y>
         <width>161</width>
-        <height>171</height>
+        <height>81</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -266,15 +251,22 @@
      <widget class="QWidget" name="horizontalLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>476</x>
-        <y>198</y>
-        <width>160</width>
-        <height>219</height>
+        <x>470</x>
+        <y>110</y>
+        <width>198</width>
+        <height>238</height>
        </rect>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Основание</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QLabel" name="label_5">
            <property name="text">
@@ -320,7 +312,7 @@
          <item>
           <widget class="QLabel" name="label_12">
            <property name="text">
-            <string>Элем. опер.</string>
+            <string>Элм. опер.</string>
            </property>
           </widget>
          </item>
@@ -328,6 +320,19 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QLineEdit" name="line_base">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>x</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QLineEdit" name="mall">
            <property name="text">
@@ -352,7 +357,7 @@
          <item>
           <widget class="QLineEdit" name="mops">
            <property name="text">
-            <string>diff integral</string>
+            <string>diff</string>
            </property>
           </widget>
          </item>
@@ -373,7 +378,7 @@
          <item>
           <widget class="QLineEdit" name="mops1">
            <property name="text">
-            <string>+-*/^_!@#$%&amp;;:|\</string>
+            <string>+- */ ^</string>
            </property>
           </widget>
          </item>
@@ -465,11 +470,6 @@
         <column>
          <property name="text">
           <string>Конечное</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>Замены</string>
          </property>
         </column>
        </widget>
@@ -568,169 +568,20 @@
      </widget>
     </widget>
     <widget class="QWidget" name="tab">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <attribute name="title">
-      <string>Тестирование (шаблоны)</string>
+      <string>Страница</string>
      </attribute>
-     <widget class="QLabel" name="label_3">
-      <property name="geometry">
-       <rect>
-        <x>1</x>
-        <y>30</y>
-        <width>71</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Выражение</string>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_4">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>70</y>
-        <width>52</width>
-        <height>13</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Шаблон</string>
-      </property>
-     </widget>
      <widget class="QPushButton" name="pushButton">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>150</y>
-        <width>321</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Тестировать</string>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="teste">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>30</y>
-        <width>271</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="plainText">
-       <string>3*x+x</string>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="testp">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>70</y>
-        <width>271</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="plainText">
-       <string>a*f+f</string>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="testr">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>200</y>
-        <width>111</width>
-        <height>31</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="mreplacers">
-      <property name="geometry">
-       <rect>
-        <x>140</x>
-        <y>200</y>
-        <width>331</width>
-        <height>171</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_8">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
+        <x>50</x>
         <y>110</y>
-        <width>61</width>
-        <height>16</height>
+        <width>85</width>
+        <height>27</height>
        </rect>
       </property>
       <property name="text">
-       <string>Результат</string>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="testr1">
-      <property name="geometry">
-       <rect>
-        <x>350</x>
-        <y>20</y>
-        <width>251</width>
-        <height>161</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="testr_2">
-      <property name="geometry">
-       <rect>
-        <x>70</x>
-        <y>110</y>
-        <width>271</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="plainText">
-       <string>(a+1)*f</string>
-      </property>
-     </widget>
-    </widget>
-    <widget class="QWidget" name="tab_2">
-     <attribute name="title">
-      <string>Тестирование (варианты)</string>
-     </attribute>
-     <widget class="QLineEdit" name="testv_src">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>10</y>
-        <width>291</width>
-        <height>41</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPlainTextEdit" name="testv_dest">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>60</y>
-        <width>431</width>
-        <height>351</height>
-       </rect>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="testv_button">
-      <property name="geometry">
-       <rect>
-        <x>300</x>
-        <y>10</y>
-        <width>131</width>
-        <height>41</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Варианты</string>
+       <string>PushButton</string>
       </property>
      </widget>
     </widget>

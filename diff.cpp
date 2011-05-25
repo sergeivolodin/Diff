@@ -48,11 +48,11 @@ void rules_to_table(QTableWidget* a,int type,rules* R=FRULES) {
             while(i<=R->maxindex) {
                 if(R->r[i]!=NULL&&R->r[i]->op==type) {
                     a->setRowCount(a->rowCount()+1);
-                    ti=new QTableWidgetItem(QString(R->r[i]->src->display()));
+                    ti=new QTableWidgetItem(QString(R->r[i]->src->display(TREE_DMATHB)));
                     if(ti!=NULL) {
                         a->setItem(si,0,ti);
                     }
-                    ti=new QTableWidgetItem(QString(R->r[i]->dest->display()));
+                    ti=new QTableWidgetItem(QString(R->r[i]->dest->display(TREE_DMATHB)));
                     if(ti!=NULL) {
                         a->setItem(si,1,ti);
                     }
@@ -148,48 +148,6 @@ void Diff::on_button_show_clicked() {
     a=res;
     ui->line_dest->setPlainText(a);
 }
-void Diff::on_pushButton_clicked() {
-    QString a,b,c;
-    tree* x=parse(ui->teste->toPlainText().toAscii().data()),
-    *y=parse(ui->testp->toPlainText().toAscii().data()),
-    *z=parse(ui->testr_2->toPlainText().toAscii().data()),
-    *trepl=NULL;
-    replacers* repl=NULL;
-    char* aa=NULL;
-    if(x!=NULL&&y!=NULL) {
-        cerr << "testing [" << x->display() << "] with [" << y->display() << "]" << endl;
-        if((repl=pattern(x,y))) {
-            int i=0;
-            while(repl!=NULL&&i<=repl->maxindex) {
-                aa=stradd(aa,repl->r[i]->l);
-                aa=stradd(aa,"=");
-                aa=stradd(aa,repl->r[i]->r->display());
-                aa=stradd(aa,"\n");
-                i++;
-            }
-            b=aa;
-            if(z->test()) {
-                trepl=replace(z,repl);
-            }
-            else {
-                trepl=new tree("FALSE");
-            }
-            c=trepl->display();
-            a="yes";
-            cerr << "[yes]";
-        }
-        else {
-            a="no";
-            cerr << "[no]";
-        }
-    }
-    else {
-        a="error";
-    }
-    ui->mreplacers->setPlainText(b);
-    ui->testr->setPlainText(a);
-    ui->testr1->setPlainText(c);
-}
 void Diff::changeEvent(QEvent *e) {
     if(sw<=1) {
         if(sw==1) {
@@ -208,20 +166,6 @@ void Diff::changeEvent(QEvent *e) {
         break;
     }
 }
-void Diff::on_testv_button_clicked() {
-    tree* a=parse(strcp(ui->testv_src->text().toAscii().data()));
-    trees* b=getvariants(a,true);
-    char* d="";
-    int i=0;
-    while(i<=b->max) {
-        d=stradd(d,b->t[i]->display());
-        d=stradd(d,"\n");
-        i++;
-    }
-    QString d1;
-    d1=d;
-    ui->testv_dest->setPlainText(d1);
-}
 void Diff::on_pushButton_2_clicked() {
     ui->tableWidget_3->setRowCount(ui->tableWidget_3->rowCount()+1);
 }
@@ -236,4 +180,20 @@ void Diff::on_pushButton_4_clicked() {
 
 void Diff::on_pushButton_5_clicked() {
     ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()-1);
+}
+
+void Diff::on_pushButton_clicked() {
+    tree* a=new tree("as");
+    tree* b=new tree("bs");
+    tree* c=new tree(new tree(a,"-",new tree("6")),"+",b);
+    cerr << "src=" << c->display() << " len=" << length(c,a,b) << endl;
+    tree* d=tree_join(c,a,b);
+    //bool d=contains(c,b,true);z
+    if(!d) {
+        cerr << "join failed" << endl;
+    }
+    else {
+        cerr << "[" << d->display(TREE_DMATHB) << "]" << endl;
+        //cerr << "ok l=" << lenght(c,a,b) << endl;
+    }
 }
