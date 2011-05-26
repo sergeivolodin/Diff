@@ -183,7 +183,7 @@ void Diff::on_pushButton_5_clicked() {
 }
 
 void Diff::on_pushButton_clicked() {
-    tree* a=new tree("as");
+    /*tree* a=new tree("as");
     tree* b=new tree("bs");
     tree* c=new tree(new tree(a,"-",new tree("6")),"+",b);
     cerr << "src=" << c->display() << " len=" << length(c,a,b) << endl;
@@ -193,7 +193,20 @@ void Diff::on_pushButton_clicked() {
         cerr << "join failed" << endl;
     }
     else {
-        cerr << "[" << d->display(TREE_DMATHB) << "]" << endl;
+        //cerr << "[" << d->display(TREE_DMATHB) << "]" << easy_new(c)->display() << endl;
         //cerr << "ok l=" << lenght(c,a,b) << endl;
+    }*/
+    tree* a=parse(ui->lineEdit->text().toAscii().data()),*b;
+    if(a!=NULL) {
+        b=easy(a);
+        if(b!=NULL) {
+            cerr << "easy=" << b->display(TREE_DMATHB) << endl;
+        }
+        else {
+            cerr << "NULL easy" << endl;
+        }
+    }
+    else {
+        cerr << "NULL tree" << endl;
     }
 }

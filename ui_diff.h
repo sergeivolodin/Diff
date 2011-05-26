@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Wed May 25 16:46:59 2011
+** Created: Thu May 26 03:32:13 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -83,6 +83,7 @@ public:
     QCheckBox *checkBox;
     QWidget *tab;
     QPushButton *pushButton;
+    QLineEdit *lineEdit;
     QLabel *label_2;
     QMenuBar *menuBar;
     QMenu *menuDiff;
@@ -113,7 +114,7 @@ public:
         tab_main->setObjectName(QString::fromUtf8("tab_main"));
         horizontalLayoutWidget_3 = new QWidget(tab_main);
         horizontalLayoutWidget_3->setObjectName(QString::fromUtf8("horizontalLayoutWidget_3"));
-        horizontalLayoutWidget_3->setGeometry(QRect(160, 80, 311, 41));
+        horizontalLayoutWidget_3->setGeometry(QRect(160, 80, 314, 41));
         horizontalLayout_3 = new QHBoxLayout(horizontalLayoutWidget_3);
         horizontalLayout_3->setSpacing(6);
         horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
@@ -184,7 +185,7 @@ public:
         plainTextEdit_2->setTextInteractionFlags(Qt::NoTextInteraction);
         horizontalLayoutWidget = new QWidget(tab_settings);
         horizontalLayoutWidget->setObjectName(QString::fromUtf8("horizontalLayoutWidget"));
-        horizontalLayoutWidget->setGeometry(QRect(470, 110, 161, 238));
+        horizontalLayoutWidget->setGeometry(QRect(470, 110, 198, 238));
         horizontalLayout = new QHBoxLayout(horizontalLayoutWidget);
         horizontalLayout->setSpacing(6);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
@@ -351,6 +352,9 @@ public:
         pushButton = new QPushButton(tab);
         pushButton->setObjectName(QString::fromUtf8("pushButton"));
         pushButton->setGeometry(QRect(50, 110, 85, 27));
+        lineEdit = new QLineEdit(tab);
+        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
+        lineEdit->setGeometry(QRect(170, 40, 221, 61));
         tabWidget->addTab(tab, QString());
         label_2 = new QLabel(centralWidget);
         label_2->setObjectName(QString::fromUtf8("label_2"));
@@ -438,6 +442,7 @@ public:
         checkBox->setText(QApplication::translate("Diff", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_settings), QApplication::translate("Diff", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270", 0, QApplication::UnicodeUTF8));
         pushButton->setText(QApplication::translate("Diff", "PushButton", 0, QApplication::UnicodeUTF8));
+        lineEdit->setText(QApplication::translate("Diff", "3*x+3+8*x", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("Diff", "\320\241\321\202\321\200\320\260\320\275\320\270\321\206\320\260", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("Diff", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
