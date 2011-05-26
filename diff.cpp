@@ -99,8 +99,7 @@ void Diff::on_button_diff_clicked() {
         dest=operate(src,1,base);
         if(dest!=NULL) {
             res="dest ok";
-            res=easy(dest)->display();
-            //res=dest->display();
+            res=easy(dest)->display(TREE_DMATH);
         }
     }
     a=res;
@@ -115,7 +114,7 @@ void Diff::update_settings() {
     MATH_DEFDIFF=strcp(ui->mvar0->text().toAscii().data());
     MATH_OPS=string_to_operations(strcp(ui->mops1->text().toAscii().data()));
     MATH_OPLIST=explode(strcp(ui->mops->text().toAscii().data()),' ');
-    printrules(FRULES);
+    //printrules(FRULES);
 }
 void Diff::on_button_parse_clicked() {
     update_settings();
@@ -132,7 +131,7 @@ void Diff::on_button_easy_clicked() {
         res="src ok";
         dest=easy(src);
         if(dest!=NULL) {
-            res=dest->display();
+            res=dest->display(TREE_DMATH);
         }
     }
     a=res;
@@ -143,7 +142,7 @@ void Diff::on_button_show_clicked() {
     char* res=strcp(ERROR);
     QString a;
     if(src!=NULL) {
-        res=src->display(TREE_DMATHB);
+        res=src->display(TREE_DMATH);
     }
     a=res;
     ui->line_dest->setPlainText(a);
@@ -180,33 +179,4 @@ void Diff::on_pushButton_4_clicked() {
 
 void Diff::on_pushButton_5_clicked() {
     ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()-1);
-}
-
-void Diff::on_pushButton_clicked() {
-    /*tree* a=new tree("as");
-    tree* b=new tree("bs");
-    tree* c=new tree(new tree(a,"-",new tree("6")),"+",b);
-    cerr << "src=" << c->display() << " len=" << length(c,a,b) << endl;
-    tree* d=tree_join(c,a,b);
-    //bool d=contains(c,b,true);z
-    if(!d) {
-        cerr << "join failed" << endl;
-    }
-    else {
-        //cerr << "[" << d->display(TREE_DMATHB) << "]" << easy_new(c)->display() << endl;
-        //cerr << "ok l=" << lenght(c,a,b) << endl;
-    }*/
-    tree* a=parse(ui->lineEdit->text().toAscii().data()),*b;
-    if(a!=NULL) {
-        b=easy(a);
-        if(b!=NULL) {
-            cerr << "easy=" << b->display(TREE_DMATHB) << endl;
-        }
-        else {
-            cerr << "NULL easy" << endl;
-        }
-    }
-    else {
-        cerr << "NULL tree" << endl;
-    }
 }

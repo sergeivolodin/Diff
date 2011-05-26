@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Thu May 26 03:32:13 2011
+** Created: Thu May 26 04:55:26 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -81,9 +81,6 @@ public:
     QPushButton *pushButton_3;
     QTableWidget *tableWidget_3;
     QCheckBox *checkBox;
-    QWidget *tab;
-    QPushButton *pushButton;
-    QLineEdit *lineEdit;
     QLabel *label_2;
     QMenuBar *menuBar;
     QMenu *menuDiff;
@@ -347,15 +344,6 @@ public:
         checkBox->setObjectName(QString::fromUtf8("checkBox"));
         checkBox->setGeometry(QRect(110, 387, 91, 19));
         tabWidget->addTab(tab_settings, QString());
-        tab = new QWidget();
-        tab->setObjectName(QString::fromUtf8("tab"));
-        pushButton = new QPushButton(tab);
-        pushButton->setObjectName(QString::fromUtf8("pushButton"));
-        pushButton->setGeometry(QRect(50, 110, 85, 27));
-        lineEdit = new QLineEdit(tab);
-        lineEdit->setObjectName(QString::fromUtf8("lineEdit"));
-        lineEdit->setGeometry(QRect(170, 40, 221, 61));
-        tabWidget->addTab(tab, QString());
         label_2 = new QLabel(centralWidget);
         label_2->setObjectName(QString::fromUtf8("label_2"));
         label_2->setGeometry(QRect(0, 445, 61, 16));
@@ -374,7 +362,7 @@ public:
         retranslateUi(Diff);
         QObject::connect(actionExit, SIGNAL(activated()), Diff, SLOT(close()));
 
-        tabWidget->setCurrentIndex(2);
+        tabWidget->setCurrentIndex(0);
         tabWidget_2->setCurrentIndex(0);
 
 
@@ -441,9 +429,6 @@ public:
         tabWidget_2->setTabText(tabWidget_2->indexOf(tab_4), QApplication::translate("Diff", "\320\237\321\200\320\276\320\270\320\267\320\262\320\276\320\264\320\275\320\260\321\217", 0, QApplication::UnicodeUTF8));
         checkBox->setText(QApplication::translate("Diff", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_settings), QApplication::translate("Diff", "\320\235\320\260\321\201\321\202\321\200\320\276\320\271\320\272\320\270", 0, QApplication::UnicodeUTF8));
-        pushButton->setText(QApplication::translate("Diff", "PushButton", 0, QApplication::UnicodeUTF8));
-        lineEdit->setText(QApplication::translate("Diff", "3*x+3+8*x", 0, QApplication::UnicodeUTF8));
-        tabWidget->setTabText(tabWidget->indexOf(tab), QApplication::translate("Diff", "\320\241\321\202\321\200\320\260\320\275\320\270\321\206\320\260", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("Diff", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

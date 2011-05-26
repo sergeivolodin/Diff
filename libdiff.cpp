@@ -14,6 +14,7 @@ using namespace std;
 /*
   упрощение
 */
+const int MAXITER=1000;
 const int CHAR_TNUM=1; //numbers: 0-9.
 const int CHAR_TLETT=2; //letters a-zA-Z
 const int CHAR_TOP=3; //operations: +-*/^
@@ -24,6 +25,7 @@ const int CHAR_TBR2=6; //closing bracket
 const char* ERROR="Error.";
 const char* MATH_BR1="(";
 const char* MATH_BR2=")";
+const char* MATH_CALC="calc";
 //наборы
 char* MATH_NUMS="abcde";
 char* MATH_VARS="xyz";
@@ -941,7 +943,7 @@ rules* rules_merge(rules* a,rules* b) {
 //расстояние от корня до нужного указателя
 bool contains(tree* where,tree* what,bool pointer=false) {
     if((pointer&&where==what)||(*where==*what&&!pointer)) {
-            return(true);
+        return(true);
     }
     if(where->type()==TREE_TBINARY) {
         return(contains(where->geta(),what,pointer)||contains(where->getb(),what,pointer));
@@ -1005,7 +1007,7 @@ int length(tree* where,tree* a,tree* b) {
         //a и b в правой ветви дерева
         if(bca&&bcb) return(length(where->getb(),a,b));
         if(aca&&bcb) {
-        /*    if(where->geta()==a) {
+            /*    if(where->geta()==a) {
                 if(where->getb()==b) return(0);
                 else return(-1);
             }
@@ -1088,7 +1090,7 @@ treemin* tree_join(tree* where,tree* a,bool addleft=false,bool addright=false,tr
         }
         i++;
     }
-/*    if(w==NULL) {
+    /*    if(w==NULL) {
         cerr << "tj0: " << where->display(TREE_DMATHB) << " => " << write->t->display(TREE_DMATHB) << " l=" << addleft << " r=" << addright << endl;
     }*/
     return(write);
@@ -1142,24 +1144,15 @@ tree* tree_join(tree* where,tree* a,tree* b) {
     return(NULL);
 }
 //добавить: общий список замен в rule_apply (иначе будут лишние совпадения!)
-tree* rreplace(tree* where,rule* r,char* base,bool* replaced,replacers* ur=NULL) {
-    replacers* wr=NULL;
-    if(ur==NULL) {
-        wr=new replacers;
-        wr->maxindex=-1;
-        wr->r=new replacer*[pattern_count_funcs(where)+1];
-    }
-    else wr=ur;
+tree* rreplace(tree* where,rule* r,char* base,bool* replaced) {
     tree *tmp=NULL,*tmp1=NULL;
-    treerepls* tr1=NULL;
-    if(tr1=rule_apply(where,r,base,wr)) {
-        wr=tr1->r;
+    if(tmp1=rule_apply(where,r,base)) {
         *replaced=true;
-        return(tr1->t);
+        return(tmp1);
     }
     int wtype=where->type();
-    if(wtype==TREE_TUNARY||wtype==TREE_TFUNCTION) tmp=rreplace(where->geta(),r,base,replaced,wr);
-    if(wtype==TREE_TBINARY) return(new tree(rreplace(where->geta(),r,base,replaced,wr),where->getvalue(),rreplace(where->getb(),r,base,replaced,wr)));
+    if(wtype==TREE_TUNARY||wtype==TREE_TFUNCTION) return(new tree(where->getvalue(),rreplace(where->geta(),r,base,replaced)));
+    if(wtype==TREE_TBINARY) return(new tree(rreplace(where->geta(),r,base,replaced),where->getvalue(),rreplace(where->getb(),r,base,replaced)));
     return(where);
 }
 replacers* copy_replacers(replacers* src) {
@@ -1194,7 +1187,7 @@ tree* find_next(tree* where,tree* spattern,trees* nolist,char* base,replacers* r
     }*/
     wrt1=copy_replacers(wr);
     if((wrt=pattern(where,spattern,base,wrt1))) {
-    //if((wrt=pattern(where,spattern,base))) {
+        //if((wrt=pattern(where,spattern,base))) {
         while(i<=nolist->max) {
             if(nolist->t[i]==where) {
                 inlist=true;
@@ -1223,52 +1216,97 @@ tree* find_next(tree* where,tree* spattern,trees* nolist,char* base,replacers* r
     }
     return(NULL);
 }
+trees* find_all(tree* where,tree* spattern,char* base,replacers* repl=NULL,trees* ut=NULL) {
+    trees* res=NULL;
+    if(ut==NULL) {
+        res=new trees;
+        res->max=-1;
+        res->t=new tree*[where->varcount()*2];
+    }
+    else res=ut;
+    replacers* wr=NULL,*wr1,*wr2;
+    if(repl==NULL) {
+        wr=new replacers;
+        wr->maxindex=-1;
+        wr->r=new replacer*[pattern_count_funcs(where)+1];
+    }
+    else wr=repl;
+    int wtype=where->type();
+    wr1=copy_replacers(wr);
+    if(wr2=pattern(where,spattern,base,wr1)) {
+        wr=wr2;
+        res->max++;
+        res->t[res->max]=where;
+    }
+    if(wtype==TREE_TBINARY) {
+        find_all(where->geta(),spattern,base,wr,res);
+        find_all(where->getb(),spattern,base,wr,res);
+    }
+    if(wtype==TREE_TUNARY||wtype==TREE_TFUNCTION) find_all(where->geta(),spattern,base,wr,res);
+    return(res);
+}
+
+tree* tree_replace_r(tree* src,tree* a,tree* b,rule* trule,bool one=true) {
+    trees* l1=find_all(src,a,MATH_DEFDIFF),*l2=find_all(src,b,MATH_DEFDIFF),*tt;
+    replacers* trepl=NULL;
+    tree* tmp,*ta,*a1=NULL,*a2=NULL;
+    bool tbool;
+    int i=0,si;
+    while(i<=l1->max) {
+        si=0;
+        while(si<=l2->max) {
+            if(l1->t[i]!=l2->t[si]) {
+                if(tmp=tree_join(src,l1->t[i],l2->t[si])) {
+                    //cerr << "join ok";
+                    if(one) {
+                        tbool=false;
+                        tmp=rreplace(tmp,trule,MATH_DEFDIFF,&tbool);
+                        if(tbool) return(tmp);
+                    }
+                    else {
+                        tt=find_all(src,trule->src,MATH_DEFDIFF);
+                        if(tt->max!=-1) {
+                            return(tmp);
+                        }
+                    }
+                }
+            }
+            si++;
+        }
+        i++;
+    }
+    tmp=src;
+    if(l1->max==-1&&a->type()==TREE_TBINARY) {
+        tmp=tree_replace_r(tmp,a->geta(),a->getb(),trule,false);
+        if(tmp==NULL) return(NULL);
+    }
+    if(l2->max==-1&&b->type()==TREE_TBINARY) tmp=tree_replace_r(tmp,b->geta(),b->getb(),trule,false);
+    if(tmp&&!(*tmp==*src)) {
+        return(tree_replace_r(tmp,a,b,trule));
+    }
+    return(NULL);
+}
 tree* easy_one(tree* src) {
-    int i=0,ii;
-    tree* tmp=NULL,*res=src,*a,*b,*a1,*a2;
-    trees* nolist=new trees;
-    nolist->t=new tree*[src->varcount()+10];
-    nolist->max=-1;
+    int i=0;
+    tree* tmp=NULL,*res=src,*a,*b;
     int min=src->opcount();
     bool tbool,ok;
     while(i<=FRULES->maxindex) {
-        if(FRULES->r[i]->op==0&&FRULES->r[i]->src->opcount()>FRULES->r[i]->dest->opcount()) {
-            //упрощающее правило
-            tbool=false;
-            tmp=rreplace(src,FRULES->r[i],MATH_DEFDIFF,&tbool);
-            if(tbool) return(tmp);
-            else if(FRULES->r[i]->src->type()==TREE_TBINARY) {
-                cerr << "binary_easy rule=" << FRULES->r[i]->src->display(TREE_DMATHB) << endl;
-                nolist->max=-1;
-                ii=0;
-                //бинарная операция в шаблоне, разбиваем на части и тянем друг к другу
-                a=FRULES->r[i]->src->geta();
-                b=FRULES->r[i]->src->getb();
-                replacers* trepl=NULL;
-                while(ii<=(src->varcount()+10)) {
-                    a1=NULL;a2=NULL;
-                    trepl=NULL;
-                    if(a1=find_next(src,a,nolist,MATH_DEFDIFF,trepl)) {
-                        //cerr << "found a=" << a1->display(TREE_DMATHB) << endl;
-                        nolist->max++;
-                        nolist->t[nolist->max]=a1;
+        if(FRULES->r[i]->op==0) {
+            if(FRULES->r[i]->src->opcount()>FRULES->r[i]->dest->opcount()||(FRULES->r[i]->dest->type()==TREE_TFUNCTION&&str(MATH_CALC,FRULES->r[i]->dest->getvalue()))) {
+                //упрощающее правило, либо calc
+                tbool=false;
+                tmp=rreplace(src,FRULES->r[i],MATH_DEFDIFF,&tbool);
+                if(tbool) return(tmp);
+                else if(FRULES->r[i]->src->type()==TREE_TBINARY) {
+                    //cerr << "binary_easy rule=" << FRULES->r[i]->src->display(TREE_DMATHB) << endl;
+                    //бинарная операция в шаблоне, разбиваем на части и тянем друг к другу
+                    a=FRULES->r[i]->src->geta();
+                    b=FRULES->r[i]->src->getb();
+                    if(tmp=tree_replace_r(src,a,b,FRULES->r[i])) {
+                        return(tmp);
                     }
-                    if(a2=find_next(src,b,nolist,MATH_DEFDIFF,trepl)) {
-                        //cerr << "found b=" << a2->display(TREE_DMATHB) << endl;
-                        nolist->max++;
-                        nolist->t[nolist->max]=a2;
-                    }
-                    if(a1&&a2) {
-                        if(tmp=tree_join(src,a1,a2)) {
-                            //cerr << "join ok";
-                            tbool=false;
-                            tmp=rreplace(tmp,FRULES->r[i],MATH_DEFDIFF,&tbool);
-                            if(tbool) return(tmp);
-                        }
-                    }
-                    ii++;
                 }
-
             }
         }
         i++;
@@ -1333,7 +1371,7 @@ operations* string_to_operations(char* src) {
             res->a[res->max]->a=new char[2];
             res->a[res->max]->a[0]=s->strs[i][si];
             res->a[res->max]->a[1]=0;
-            cerr << "Writing operation: " << s->strs[i][si] << " prio=" << i << endl;
+            //cerr << "Writing operation: " << s->strs[i][si] << " prio=" << i << endl;
             si++;
         }
         i++;
@@ -1637,14 +1675,25 @@ tree* rcalc(tree* src) {
         return(calc(new tree(rcalc(src->geta()),src->getvalue(),rcalc(src->getb()))));
     }
     if(stype==TREE_TFUNCTION||stype==TREE_TUNARY) {
+        if(str(src->getvalue(),MATH_CALC)) {
+            return(rcalc(src->geta()));
+        }
         return(calc(new tree(src->getvalue(),rcalc(src->geta()))));
     }
     return(src);
 }
 tree* easy(tree* src) {
-    tree* tmp=easy_one(src);
-    if(!(*tmp==*src)) return(rcalc(easy(tmp)));
-    return(rcalc(tmp));
+    static unsigned int iter=0;
+    tree* tmp=rcalc(easy_one(rcalc(src->copymem())));
+    if(*tmp==*src||iter>=MAXITER) {
+        iter=0;
+        return(src);
+    }
+    else {
+        iter++;
+        //cerr << tmp->display(TREE_DMATHB);
+        return(easy_one(rcalc(easy(rcalc(tmp)))));
+    }
 }
 tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crules=FRULES,bool rmode=false) {
     unsigned int i=0,type=0;
@@ -1679,7 +1728,9 @@ tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crule
                 }
                 i++;
             }
+            return(NULL);
         }
+        return(NULL);
     }
     else {
         type=src->type();
