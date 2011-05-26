@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Thu May 26 04:55:26 2011
+** Created: Thu May 26 09:47:29 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -111,7 +111,7 @@ public:
         tab_main->setObjectName(QString::fromUtf8("tab_main"));
         horizontalLayoutWidget_3 = new QWidget(tab_main);
         horizontalLayoutWidget_3->setObjectName(QString::fromUtf8("horizontalLayoutWidget_3"));
-        horizontalLayoutWidget_3->setGeometry(QRect(160, 80, 314, 41));
+        horizontalLayoutWidget_3->setGeometry(QRect(0, 90, 314, 41));
         horizontalLayout_3 = new QHBoxLayout(horizontalLayoutWidget_3);
         horizontalLayout_3->setSpacing(6);
         horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
@@ -146,7 +146,7 @@ public:
 
         groupBox_2 = new QGroupBox(tab_main);
         groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
-        groupBox_2->setGeometry(QRect(0, 170, 541, 111));
+        groupBox_2->setGeometry(QRect(0, 140, 541, 111));
         line_dest = new QPlainTextEdit(groupBox_2);
         line_dest->setObjectName(QString::fromUtf8("line_dest"));
         line_dest->setEnabled(true);

@@ -376,7 +376,7 @@ lexer_answer* lexer(char* cstr) {
         if(c=='.') c=',';
         cstate=char_state(c);
         if(cstate==0) {
-            cerr << "Warning (lexer): wrong symbol '" << c << "' at" << i << endl;
+            cerr << "Warning (lexer): wrong symbol '" << c << "' at " << i << endl;
         }
         else {
             tmp=new char[2];
@@ -1233,7 +1233,7 @@ trees* find_all(tree* where,tree* spattern,char* base,replacers* repl=NULL,trees
     else wr=repl;
     int wtype=where->type();
     wr1=copy_replacers(wr);
-    if(wr2=pattern(where,spattern,base,wr1)) {
+    if(repl!=NULL&&(wr2=pattern(where,spattern,base,wr1))) {
         wr=wr2;
         res->max++;
         res->t[res->max]=where;
