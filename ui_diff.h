@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'diff.ui'
 **
-** Created: Thu May 26 09:47:29 2011
+** Created: Thu Jun 2 18:42:13 2011
 **      by: Qt User Interface Compiler version 4.6.3
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -146,7 +146,7 @@ public:
 
         groupBox_2 = new QGroupBox(tab_main);
         groupBox_2->setObjectName(QString::fromUtf8("groupBox_2"));
-        groupBox_2->setGeometry(QRect(0, 140, 541, 111));
+        groupBox_2->setGeometry(QRect(0, 170, 541, 111));
         line_dest = new QPlainTextEdit(groupBox_2);
         line_dest->setObjectName(QString::fromUtf8("line_dest"));
         line_dest->setEnabled(true);
@@ -379,7 +379,7 @@ public:
         button_show->setText(QApplication::translate("Diff", "\320\237\320\276\320\272\320\260\320\267\320\260\321\202\321\214", 0, QApplication::UnicodeUTF8));
         groupBox_2->setTitle(QApplication::translate("Diff", "\320\240\320\265\320\267\321\203\320\273\321\214\321\202\320\260\321\202:", 0, QApplication::UnicodeUTF8));
         groupBox->setTitle(QApplication::translate("Diff", "\320\222\321\213\321\200\320\260\320\266\320\265\320\275\320\270\320\265:", 0, QApplication::UnicodeUTF8));
-        line_src->setPlainText(QApplication::translate("Diff", "sin(x+cos(x)^(x+3))", 0, QApplication::UnicodeUTF8));
+        line_src->setPlainText(QApplication::translate("Diff", "cos(x)^2+3+sin(x)^2", 0, QApplication::UnicodeUTF8));
         tabWidget->setTabText(tabWidget->indexOf(tab_main), QApplication::translate("Diff", "\320\236\321\201\320\275\320\276\320\262\320\275\320\276\320\265 \320\276\320\272\320\275\320\276", 0, QApplication::UnicodeUTF8));
         button_parse->setText(QApplication::translate("Diff", "\320\237\321\200\320\270\320\274\320\265\320\275\320\270\321\202\321\214", 0, QApplication::UnicodeUTF8));
         plainTextEdit_2->setPlainText(QApplication::translate("Diff", "\320\222\320\277\320\270\321\201\321\213\320\262\320\260\320\271\321\202\320\265 \320\277\321\200\320\260\320\262\320\270\320\273\320\260 \320\262 \321\201\320\276\320\276\321\202\320\262\320\265\321\202\321\201\321\202\320\262\321\203\321\216\321\211\321\203\321\216 \321\202\320\260\320\261\320\273\320\270\321\206\321\203.\n"

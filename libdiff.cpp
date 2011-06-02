@@ -79,7 +79,7 @@ struct lexer_answer {
     int max;
     bool errors;
 };
-const int TREE_DDEFAULT=TREE_DMATH;
+const int TREE_DDEFAULT=TREE_DMATHB;
 inline bool char_isnum(char sym) {
     return((sym>='0'&&sym<='9')||sym=='.'||sym==',');
 }
@@ -235,6 +235,9 @@ private:
             return(false);
         }
     }
+    bool operator!=(tree x) {
+        return(!(x==*this));
+    }
     inline bool isleaf() {
         return(leaf);
     }
@@ -248,86 +251,56 @@ private:
         return(value);
     }
     bool contains(const char* src) {
-        if(leaf) {
-            return(str(src,value));
-        }
+        if(leaf) return(str(src,value));
         else {
-            if(b==NULL) {
-                return(a->contains(src));
-            }
-            else {
-                return(a->contains(src)||b->contains(src));
-            }
+            if(b==NULL) return(a->contains(src));
+            else return(a->contains(src)||b->contains(src));
         }
     }
     bool test() {
         if(leaf) {
-            if(value==NULL) {
-                return(false);
-            }
+            if(value==NULL) return(false);
         }
         else {
-            if(a==NULL) {
-                return(false);
-            }
-            if(b==NULL) {
-                return(a->test());
-            }
-            else {
-                return(a->test()&&b->test());
-            }
+            if(a==NULL) return(false);
+            if(b==NULL) return(a->test());
+            else return(a->test()&&b->test());
         }
         return(true);
     }
     int type() {
         if(leaf) {
-            if(char_isnum_m(value[0])) {
-                return(TREE_TNUM);
-            }
-            else {
-                return(TREE_TVAR);
-            }
+            if(char_isnum_m(value[0])) return(TREE_TNUM);
+            else return(TREE_TVAR);
         }
         else {
             if(b==NULL) {
-                if(char_islett(value[0])) {
-                    return(TREE_TFUNCTION);
-                }
-                else {
-                    return(TREE_TUNARY);
-                }
+                if(char_islett(value[0])) return(TREE_TFUNCTION);
+                else return(TREE_TUNARY);
             }
-            else {
-                return(TREE_TBINARY);
-            }
+            else return(TREE_TBINARY);
         }
     }
     int varcount() {
         int ttype=type();
-        if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) {
-            return(a->varcount());
-        }
-        else if(ttype==TREE_TBINARY) {
-            return(a->varcount()+b->varcount());
-        }
-        else {
-            return(1);
-        }
+        if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) return(a->varcount());
+        else if(ttype==TREE_TBINARY) return(a->varcount()+b->varcount());
+        else if(ttype==TREE_TVAR) return(1);
+        else return(0);
+    }
+    int lenght() {
+        int ttype=type();
+        if(ttype==TREE_TVAR||ttype==TREE_TNUM) return(1);
+        else if(ttype==TREE_TFUNCTION||ttype==TREE_TUNARY) return(1+a->lenght());
+        else if(ttype==TREE_TBINARY) return(1+a->lenght()+b->lenght());
+        else return(0);
     }
     int opcount() {
         int ttype=type();
-        if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) {
-            return(1+a->opcount());
-        }
-        else if(ttype==TREE_TBINARY) {
-            return(2+a->opcount()+b->opcount());
-        }
-        else if(ttype==TREE_TVAR) {
-            return(1);
-        }
-        else {
-            return(0);
-        }
+        if(ttype==TREE_TUNARY||ttype==TREE_TFUNCTION) return(1+a->opcount());
+        else if(ttype==TREE_TBINARY) return(2+a->opcount()+b->opcount());
+        else if(ttype==TREE_TVAR) return(1);
+        else return(0);
     }
     void operator=(tree *src) {
         tree *newtree;
@@ -338,18 +311,10 @@ private:
         b=newtree->b;
     }
     char* display(int dtype=TREE_DDEFAULT) {
-        if(dtype==TREE_DMATH) {
-            return(display_math());
-        }
-        else if(dtype==TREE_DTREE) {
-            return(display_tree());
-        }
-        else if(dtype==TREE_DMATHB) {
-            return(display_math(true));
-        }
-        else {
-            return(display(TREE_DDEFAULT));
-        }
+        if(dtype==TREE_DMATH) return(display_math());
+        else if(dtype==TREE_DTREE) return(display_tree());
+        else if(dtype==TREE_DMATHB) return(display_math(true));
+        else return(display(TREE_DDEFAULT));
     }
 };
 struct replacer {
@@ -941,104 +906,52 @@ rules* rules_merge(rules* a,rules* b) {
 //ВНИМАНИЕ: функции сравнивают указатели, а не их содержимое!
 //возвращает -1, если что-то пошло не так.
 //расстояние от корня до нужного указателя
-bool contains(tree* where,tree* what,bool pointer=false) {
-    if((pointer&&where==what)||(*where==*what&&!pointer)) {
-        return(true);
-    }
-    if(where->type()==TREE_TBINARY) {
-        return(contains(where->geta(),what,pointer)||contains(where->getb(),what,pointer));
-    }
-    if(where->type()==TREE_TFUNCTION||where->type()==TREE_TUNARY) {
-        return(contains(where->geta(),what,pointer));
-    }
+bool contains(tree* where,tree* what,bool pointer=true) {
+    if((pointer&&where==what)||(*where==*what&&!pointer)) return(true);
+    if(where->type()==TREE_TBINARY) return(contains(where->geta(),what,pointer)||contains(where->getb(),what,pointer));
+    if(where->type()==TREE_TFUNCTION||where->type()==TREE_TUNARY) return(contains(where->geta(),what,pointer));
     return(false);
 }
 int length(tree* where, tree* a,bool addleft=false,bool addright=false) {
-    int wtype=where->type();
-    int tmp;
-    if(where==a) {
-        return(0);
-    }
-    if(wtype==TREE_TUNARY||wtype==TREE_TFUNCTION) {
-        tmp=length(where->geta(),a);
-        if(tmp!=-1) return(tmp+1);
-        else return(-1);
+    if(where==a) return(0);
+    int wtype=where->type(),tlen;
+    if(wtype==TREE_TFUNCTION||wtype==TREE_TUNARY) {
+        tlen=length(where->geta(),a);
+        if(tlen!=-1) return(1+tlen);
     }
     if(wtype==TREE_TBINARY) {
-        if(where->geta()==a) {
-            if(addleft) return(2);
-            else return(1);
-        }
-        if(where->getb()==a) {
-            if(addright) return(2);
-            else return(1);
-        }
-        if(contains(where->geta(),a,true)) {
-            tmp=length(where->geta(),a,addleft,addright);
-            if(tmp!=-1) {
-                if(addleft) return(tmp+2);
-                else return(tmp+1);
-            }
-            else return(-1);
-        }
-        if(contains(where->getb(),a,true)) {
-            tmp=length(where->getb(),a,addleft,addright);
-            if(tmp!=-1) {
-                if(addright) return(tmp+2);
-                else return(tmp+1);
-            }
-            else return(-1);
-        }
-        return(-1);
+        tlen=length(where->geta(),a);
+        if(tlen!=-1) return(addleft?2+tlen:1+tlen);
+        tlen=length(where->getb(),a);
+        if(tlen!=-1) return(addright?2+tlen:1+tlen);
     }
     return(-1);
 }
 //расстояние между двумя
 int length(tree* where,tree* a,tree* b) {
-    if(!contains(where,a,true)||!contains(where,b,true)) return(-1);
-    int wtype=where->type();
+    int wtype=where->type(),tlen1,tlen2;
+    if(wtype==TREE_TFUNCTION||wtype==TREE_TUNARY) {
+        return(length(where->geta(),a,b));
+    }
     if(wtype==TREE_TBINARY) {
-        bool aca=contains(where->geta(),a,true);
-        bool bca=contains(where->getb(),a,true);
-        bool acb=contains(where->geta(),b,true);
-        bool bcb=contains(where->getb(),b,true);
-        //a и b в левой ветви дерева
+        bool aca=contains(where->geta(),a);
+        bool acb=contains(where->geta(),b);
+        bool bca=contains(where->getb(),a);
+        bool bcb=contains(where->getb(),b);
         if(aca&&acb) return(length(where->geta(),a,b));
-        //a и b в правой ветви дерева
         if(bca&&bcb) return(length(where->getb(),a,b));
         if(aca&&bcb) {
-            /*    if(where->geta()==a) {
-                if(where->getb()==b) return(0);
-                else return(-1);
-            }
-            if(where->getb()==b) {
-                if(where->geta()==a) return(0);
-                else return(-1);
-            }*/
             if(where->geta()==a&&where->getb()==b) return(0);
-            int l1=length(where->geta(),a,true,false);
-            int l2=length(where->getb(),b,false,true);
-            if(l1!=-1&&l2!=-1) return(l1+l2+1);
-            else return(-1);
+            tlen1=length(where->geta(),a);
+            tlen2=length(where->getb(),b);
+            if(tlen1!=-1&&tlen2!=-1) return(1+tlen1+tlen2);
         }
         if(acb&&bca) {
-            /*if(where->geta()==b) {
-                if(where->getb()==a) return(0);
-                else return(-1);
-            }
-            if(where->getb()==a) {
-                if(where->geta()==b) return(0);
-                else return(-1);
-            }*/
-            if(where->geta()==b&&where->getb()==a) return(0);
-            int l1=length(where->geta(),b,true,false);
-            int l2=length(where->getb(),a,false,true);
-            if(l1!=-1&&l2!=-1) return(l1+l2+1);
-            else return(-1);
+            tlen1=length(where->geta(),b);
+            tlen2=length(where->getb(),a);
+            if(tlen1!=-1&&tlen2!=-1) return(2+tlen1+tlen2);
         }
-        return(-1);
     }
-    if(wtype==TREE_TUNARY||wtype==TREE_TFUNCTION) return(length(where->geta(),a,b));
     return(-1);
 }
 //без замен!
@@ -1046,96 +959,108 @@ struct treerepls {
     tree* t;
     replacers* r;
 };
-
 treerepls* rule_apply(tree* src,rule* r,char* base,replacers* repls) {
     treerepls* res=new treerepls;
     res->r=pattern(src,r->src,base,repls);
-    if(res->r==NULL) return(NULL);
+    if(!res->r) return(NULL);
     res->t=replace(r->dest,res->r);
     return(res);
 }
 tree* rule_apply(tree* src,rule* r,char* base) {
     replacers* a=pattern(src,r->src,base);
-    if(a==NULL) return(NULL);
+    if(!a) return(NULL);
     return(replace(r->dest,a));
 }
 struct treemin {
     tree* t;
     int l;
 };
+//"вытягивает" наверх what из where
 treemin* tree_join(tree* where,tree* a,bool addleft=false,bool addright=false,treemin* w=NULL) {
-    treemin* write=NULL,*tmptm=NULL;
-    if(w==NULL) {
-        write=new treemin;
-        write->l=length(where,a,addleft,addright);
-        write->t=where;
+    if(!(addleft||addright)) {
+        treemin* x=tree_join(where,a,false,true,w),*y=tree_join(where,a,true,false,w);
+        if(x->l<y->l) return(x);
+        return(y);
     }
-    else write=w;
-    int i=0,tlen;
-    tree* tmp=NULL;
+    treemin* res;
+    tree* ttree;
+    int tlen;
+    if(where==a||!contains(where,a)) {
+        res=new treemin;
+        res->l=length(where,a,addleft,addright);
+        res->t=where;
+        return(res);
+    }
+    //cerr << "TJ called: where=" << where->display() << " what=" << a->display() << " al=" << addleft << " ar=" << addright << " tmin=?" << (w!=NULL) << endl;
+    if(where->type()==TREE_TUNARY||where->type()==TREE_TFUNCTION) {
+        if(contains(where->geta(),a)) where=new tree(where->getvalue(),tree_join(where->geta(),a)->t);
+    }
+    if(where->type()==TREE_TBINARY) {
+        if(contains(where->geta(),a)) where=new tree(tree_join(where->geta(),a)->t,where->getvalue(),where->getb());
+        if(contains(where->getb(),a)) where=new tree(where->geta(),where->getvalue(),tree_join(where->getb(),a)->t);
+    }
+    if(w) res=w;
+    else {
+        res=new treemin;
+        res->l=length(where,a,addleft,addright);
+        res->t=where;
+    }
+    int i=0;
     while(i<=FRULES->maxindex) {
-        if(FRULES->r[i]->op==0) {
-            tmp=rule_apply(where,FRULES->r[i],MATH_DEFDIFF);
-            if(tmp!=NULL) {
-                if((tlen=length(tmp,a,addleft,addright))<write->l&&tlen!=-1) {
-                    //cerr << "1ok (" << write->l << ")... " << FRULES->r[i]->src->display(TREE_DMATHB) << "=>" << tmp->display(TREE_DMATHB) << " (" << tlen << ")" << endl;
-                    write->l=tlen;
-                    write->t=tmp;
-                    tmptm=tree_join(tmp,a,addleft,addright,write);
-                    if(tmptm->l<tlen) {
-                        write=tmptm;
-                    }
-                }
+        if(FRULES->r[i]->op==0&&(ttree=rule_apply(where,FRULES->r[i],MATH_DEFDIFF))) {
+            tlen=length(ttree,a,addleft,addright);
+            if(tlen<res->l) {
+                //cerr << "where=" << where->display(TREE_DMATHB) << " applying rule #" << i << ": " << FRULES->r[i]->src->display(TREE_DMATHB) << " => " << ttree->display(TREE_DMATHB) << " l=" << tlen << "/" << res->l << endl;
+                res->l=tlen;
+                res->t=ttree;
+                tree_join(ttree,a,false,false,res);
+                break;
             }
         }
         i++;
     }
-    /*    if(w==NULL) {
-        cerr << "tj0: " << where->display(TREE_DMATHB) << " => " << write->t->display(TREE_DMATHB) << " l=" << addleft << " r=" << addright << endl;
-    }*/
-    return(write);
+    return(res);
+}
+treemin* tree_join_full(tree* where,tree* a,bool addleft,bool addright) {
+    return(tree_join(tree_join(where,a)->t,a,addleft,addright));
 }
 tree* tree_join(tree* where,tree* a,tree* b) {
-    int i=0,tl;
-    tree* tmpt=NULL;
-    if(where->type()==TREE_TBINARY) {
-        bool aca=contains(where->geta(),a,true);
-        bool bca=contains(where->getb(),a,true);
-        bool acb=contains(where->geta(),b,true);
-        bool bcb=contains(where->getb(),b,true);
+    int wtype=where->type();
+    tree* ttree,*ttree1,*ttree2;
+    tree* wsrc=where->copymem();
+    if(wtype==TREE_TBINARY) {
+        bool aca=contains(where->geta(),a);
+        bool acb=contains(where->geta(),b);
+        bool bca=contains(where->getb(),a);
+        bool bcb=contains(where->getb(),b);
         if(aca&&acb) {
-            tmpt=tree_join(where->geta(),a,b);
-            if(tmpt) return(new tree(tmpt,where->getvalue(),where->getb()));
+            ttree=tree_join(where->geta(),a,b);
+            if(ttree) where=new tree(ttree,where->getvalue(),where->getb());
             else return(NULL);
         }
         if(bca&&bcb) {
-            tmpt=tree_join(where->getb(),a,b);
-            if(tmpt) return(new tree(where->geta(),where->getvalue(),tmpt));
+            ttree=tree_join(where->getb(),a,b);
+            if(ttree) where=new tree(where->geta(),where->getvalue(),ttree);
             else return(NULL);
         }
-        if(aca&&where->geta()!=a) where=new tree(tree_join(where->geta(),a,true,false)->t,where->getvalue(),where->getb());
-        if(acb&&where->geta()!=b) where=new tree(tree_join(where->geta(),b,true,false)->t,where->getvalue(),where->getb());
-
-        if(bca&&where->getb()!=a) where=new tree(where->geta(),where->getvalue(),tree_join(where->getb(),a,false,true)->t);
-        if(bcb&&where->getb()!=b) where=new tree(where->geta(),where->getvalue(),tree_join(where->getb(),b,false,true)->t);
+        //здесь обязательно явно указывать "направление" дерева!
+        if(aca&&bcb) where=new tree(tree_join(where->geta(),a,true,false)->t,where->getvalue(),tree_join(where->getb(),b,false,true)->t);
+        if(bca&&acb) where=new tree(tree_join(where->geta(),b,true,false)->t,where->getvalue(),tree_join(where->getb(),a,false,true)->t);
     }
-    int cl=length(where,a,b);
-    if(cl==-1) return(NULL);
-    //cerr << "where=" << where->display(TREE_DMATHB) << " a=" << a->display(TREE_DMATHB) << " b=" << b->display(TREE_DMATHB) << " (" << cl << ")" << endl;
-    if(cl==0) {
-        return(where);
-    }
-    tree* tmp=NULL,*tmpr=NULL;
+    //if(*wsrc!=*where) cerr << "TJ-mod: " << wsrc->display() << " => " << where->display() << endl;
+    int i=0;
+    int slen=length(where,a,b),dlen,dlen1;
+    if(!slen) return(where);
     while(i<=FRULES->maxindex) {
-        if(FRULES->r[i]->op==0) {
-            tmp=rule_apply(where,FRULES->r[i],MATH_DEFDIFF);
-            if(tmp) {
-                //cerr << "trying (" << cl << ")... " << FRULES->r[i]->src->display(TREE_DMATHB) << "=>" << tmp->display(TREE_DMATHB) << endl;
-                if((tl=length(tmp,a,b))<cl&&tl!=-1) {
-                    //правило уменьшило расстояние
-                    //выходим только если перебрали все, иначе тупиковая ветвь выдаст ошибочный результат
-                    //cerr << "less: " << tmp->display(TREE_DMATHB) << endl;
-                    if(tmpr=tree_join(tmp,a,b)) return(tmpr);
+        if(FRULES->r[i]->op==0&&(ttree1=rule_apply(where,FRULES->r[i],MATH_DEFDIFF))) {
+            dlen=length(ttree1,a,b);
+            //cerr << "TJ1: where=" << where->display() << " a=" << a->display() << " b=" << b->display() << " (" << slen << ") trying rule #" << i << " " << FRULES->r[i]->src->display() << " => " << ttree1->display() << " (" << dlen << ")" << endl;
+            if(dlen<slen) {
+                if(!dlen) return(ttree1);
+                ttree2=tree_join(ttree1,a,b);
+                if(ttree2) {
+                    dlen1=length(ttree2,a,b);
+                    if(!dlen1) return(ttree2);
                 }
             }
         }
@@ -1143,7 +1068,6 @@ tree* tree_join(tree* where,tree* a,tree* b) {
     }
     return(NULL);
 }
-//добавить: общий список замен в rule_apply (иначе будут лишние совпадения!)
 tree* rreplace(tree* where,rule* r,char* base,bool* replaced) {
     tree *tmp=NULL,*tmp1=NULL;
     if(tmp1=rule_apply(where,r,base)) {
@@ -1245,9 +1169,26 @@ trees* find_all(tree* where,tree* spattern,char* base,replacers* repl=NULL,trees
     if(wtype==TREE_TUNARY||wtype==TREE_TFUNCTION) find_all(where->geta(),spattern,base,wr,res);
     return(res);
 }
-
+void print_trees(trees* a) {
+    int i=0;
+    while(i<=a->max) {
+        cerr << "trees[" << i << "]: " << a->t[i]->display(TREE_DMATHB) << endl;
+        i++;
+    }
+}
+//cos(x)^2+sin(x)^2
 tree* tree_replace_r(tree* src,tree* a,tree* b,rule* trule,bool one=true) {
     trees* l1=find_all(src,a,MATH_DEFDIFF),*l2=find_all(src,b,MATH_DEFDIFF),*tt;
+    bool tb=false;
+    if(str(a->getvalue(),"^")) {
+        cerr << "==l1==" << endl;
+        print_trees(l1);
+        tb=true;
+    }
+    if(str(b->getvalue(),"^")) {
+        cerr << "==l2==" << endl;
+        print_trees(l2);
+    }
     replacers* trepl=NULL;
     tree* tmp,*ta,*a1=NULL,*a2=NULL;
     bool tbool;
@@ -1257,7 +1198,7 @@ tree* tree_replace_r(tree* src,tree* a,tree* b,rule* trule,bool one=true) {
         while(si<=l2->max) {
             if(l1->t[i]!=l2->t[si]) {
                 if(tmp=tree_join(src,l1->t[i],l2->t[si])) {
-                    //cerr << "join ok";
+                    if(tb) cerr << "join ok - " << tmp->display(TREE_DMATH) << "(" << length(src,l1->t[i],l2->t[si]) << ")" << endl;
                     if(one) {
                         tbool=false;
                         tmp=rreplace(tmp,trule,MATH_DEFDIFF,&tbool);
@@ -1270,12 +1211,15 @@ tree* tree_replace_r(tree* src,tree* a,tree* b,rule* trule,bool one=true) {
                         }
                     }
                 }
+                else {
+                    cerr << "join failed " << l1->t[i]->display() << " " << l2->t[si]->display() << endl;
+                }
             }
             si++;
         }
         i++;
     }
-    tmp=src;
+    /*tmp=src;
     if(l1->max==-1&&a->type()==TREE_TBINARY) {
         tmp=tree_replace_r(tmp,a->geta(),a->getb(),trule,false);
         if(tmp==NULL) return(NULL);
@@ -1283,7 +1227,7 @@ tree* tree_replace_r(tree* src,tree* a,tree* b,rule* trule,bool one=true) {
     if(l2->max==-1&&b->type()==TREE_TBINARY) tmp=tree_replace_r(tmp,b->geta(),b->getb(),trule,false);
     if(tmp&&!(*tmp==*src)) {
         return(tree_replace_r(tmp,a,b,trule));
-    }
+    }*/
     return(NULL);
 }
 tree* easy_one(tree* src) {
@@ -1299,7 +1243,7 @@ tree* easy_one(tree* src) {
                 tmp=rreplace(src,FRULES->r[i],MATH_DEFDIFF,&tbool);
                 if(tbool) return(tmp);
                 else if(FRULES->r[i]->src->type()==TREE_TBINARY) {
-                    //cerr << "binary_easy rule=" << FRULES->r[i]->src->display(TREE_DMATHB) << endl;
+                    cerr << "binary_easy rule=" << FRULES->r[i]->src->display(TREE_DMATHB) << endl;
                     //бинарная операция в шаблоне, разбиваем на части и тянем друг к другу
                     a=FRULES->r[i]->src->geta();
                     b=FRULES->r[i]->src->getb();
@@ -1420,11 +1364,11 @@ void settings_to_file(rules* R=FRULES,const char* filename=CONFFILE) {
         fputs("\n",file);
         i=0;
         while(i<=R->maxindex) {
-            buf=R->r[i]->src->display();
+            buf=R->r[i]->src->display(TREE_DMATHB);
             buf=stradd(buf,MATH_CCOMMOND);
             buf=stradd(buf,print_num(R->r[i]->op));
             buf=stradd(buf,MATH_CCOMMOND);
-            buf=stradd(buf,R->r[i]->dest->display());
+            buf=stradd(buf,R->r[i]->dest->display(TREE_DMATHB));
             buf=stradd(buf,postrepls_to_string(R->r[i]->postrepl));
             buf=stradd(buf,MATH_CLINESD);
             fputs(buf,file);
@@ -1694,6 +1638,7 @@ tree* easy(tree* src) {
         //cerr << tmp->display(TREE_DMATHB);
         return(easy_one(rcalc(easy(rcalc(tmp)))));
     }
+//    return(src);
 }
 tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crules=FRULES,bool rmode=false) {
     unsigned int i=0,type=0;

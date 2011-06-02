@@ -96,7 +96,7 @@ void Diff::on_button_diff_clicked() {
     QString a;
     if(src!=NULL) {
         res="src ok";
-        dest=operate(src,1,base);
+        dest=operate(easy(src),1,base);
         if(dest!=NULL) {
             res="dest ok";
             res=easy(dest)->display(TREE_DMATH);
@@ -142,7 +142,7 @@ void Diff::on_button_show_clicked() {
     char* res=strcp(ERROR);
     QString a;
     if(src!=NULL) {
-        res=src->display(TREE_DMATH);
+        res=src->display(TREE_DMATHB);
     }
     a=res;
     ui->line_dest->setPlainText(a);
@@ -180,3 +180,39 @@ void Diff::on_pushButton_4_clicked() {
 void Diff::on_pushButton_5_clicked() {
     ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()-1);
 }
+/*void Diff::on_pushButton_clicked() {
+    tree* need=new tree("x");
+    tree* need1=new tree("y");
+    tree* where=new tree(
+                new tree(
+                        new tree("2"),"*",need1
+                ),
+                "+",
+                new tree(
+                        new tree(
+                                new tree(
+                                        new tree("9"),"*",need
+                                ),
+                                "*",
+                                new tree("8")
+                        ),
+                        "*",
+                        new tree("3")
+                )
+            );
+//    tree* where=new tree(
+//                            new tree(
+//                                    new tree(
+//                                            new tree("9"),"+",need
+//                                    ),
+//                                    "+",
+//                                    new tree("8")
+//                            ),
+//                            "+",
+//                            new tree("5")
+//                );
+    cerr << "###orig: " << where->display() << " (" << length(where,need,need1) << ") " << endl;
+    tree* res=tree_join(where,need,need1);
+    if(res) cerr << "###res: " << res->display() << " (" << length(where,need,need1) << ")" << endl;
+    else cerr << "###res - false" << endl;
+}*/
