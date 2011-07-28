@@ -1,20 +1,21 @@
 #include <iostream>
-#include <assert.h>
 #include "default.cpp"
-#include "strs.cpp"
+#include "funcs.cpp"
 #include <stdio.h>
 #include <stdlib.h>
-#include <iomanip>
 #include <math.h>
-#include <string.h>
-#include <strings.h>
+#include <assert.h>
 #define BUFLEN 1000
 #define CONFFILE ".diff_program"
+
+long long int stime1=0;
 using namespace std;
 /*
   упрощение
 */
-const int MAXITER=1000;
+int DEBUG=0; //0-silent;1-some;2-full
+bool FULLEASY=true;
+int MAXITER=100;
 const int CHAR_TNUM=1; //numbers: 0-9.
 const int CHAR_TLETT=2; //letters a-zA-Z
 const int CHAR_TOP=3; //operations: +-*/^
@@ -1025,6 +1026,7 @@ treemin* tree_join_full(tree* where,tree* a,bool addleft,bool addright) {
     return(tree_join(tree_join(where,a)->t,a,addleft,addright));
 }
 tree* tree_join(tree* where,tree* a,tree* b) {
+    if(!a||!b) return(NULL);
     int wtype=where->type();
     tree* ttree,*ttree1,*ttree2;
     tree* wsrc=where->copymem();
@@ -1175,17 +1177,14 @@ void print_trees(trees* a) {
         cerr << "trees[" << i << "]: " << a->t[i]->display(TREE_DMATHB) << endl;
         i++;
     }
+    cerr << "ok" << endl;
 }
-//cos(x)^2+sin(x)^2
 tree* tree_replace_r(tree* src,tree* a,tree* b,rule* trule,bool one=true) {
+    if(DEBUG>1) cerr << "a=" << a->display() << " b=" << b->display() << endl;
     trees* l1=find_all(src,a,MATH_DEFDIFF),*l2=find_all(src,b,MATH_DEFDIFF),*tt;
-    bool tb=false;
-    if(str(a->getvalue(),"^")) {
+    if(DEBUG>1) {
         cerr << "==l1==" << endl;
         print_trees(l1);
-        tb=true;
-    }
-    if(str(b->getvalue(),"^")) {
         cerr << "==l2==" << endl;
         print_trees(l2);
     }
@@ -1193,25 +1192,30 @@ tree* tree_replace_r(tree* src,tree* a,tree* b,rule* trule,bool one=true) {
     tree* tmp,*ta,*a1=NULL,*a2=NULL;
     bool tbool;
     int i=0,si;
+    if(DEBUG>1) cerr << l1->max << " " << l2->max << endl;
+    if(l1->max<0||l2->max<0) return(NULL);
     while(i<=l1->max) {
         si=0;
         while(si<=l2->max) {
-            if(l1->t[i]!=l2->t[si]) {
-                if(tmp=tree_join(src,l1->t[i],l2->t[si])) {
-                    if(tb) cerr << "join ok - " << tmp->display(TREE_DMATH) << "(" << length(src,l1->t[i],l2->t[si]) << ")" << endl;
+            if(l1->t[i]&&l2->t[si]&&(l1->t[i]!=l2->t[si])) {
+                stime1-=mtime();
+                tmp=tree_join(src,l1->t[i],l2->t[si]);
+                stime1+=mtime();
+                if(tmp) {
+                    if(DEBUG>1) cerr << "join ok - " << tmp->display(TREE_DMATH) << "(" << length(src,l1->t[i],l2->t[si]) << ")" << endl;
                     if(one) {
                         tbool=false;
+                        
                         tmp=rreplace(tmp,trule,MATH_DEFDIFF,&tbool);
-                        if(tbool) return(tmp);
+                        
+                        if(tbool) {return(tmp);}
                     }
                     else {
                         tt=find_all(src,trule->src,MATH_DEFDIFF);
-                        if(tt->max!=-1) {
-                            return(tmp);
-                        }
+                        if(tt->max!=-1) {return(tmp);}
                     }
                 }
-                else {
+                else if(DEBUG>1) {
                     cerr << "join failed " << l1->t[i]->display() << " " << l2->t[si]->display() << endl;
                 }
             }
@@ -1241,16 +1245,23 @@ tree* easy_one(tree* src) {
                 //упрощающее правило, либо calc
                 tbool=false;
                 tmp=rreplace(src,FRULES->r[i],MATH_DEFDIFF,&tbool);
-                if(tbool) return(tmp);
-                else if(FRULES->r[i]->src->type()==TREE_TBINARY) {
-                    cerr << "binary_easy rule=" << FRULES->r[i]->src->display(TREE_DMATHB) << endl;
+                if(DEBUG>1) cerr << " TRYING [" << FRULES->r[i]->src->display(TREE_DMATHB) << "]: ";
+                if(tbool) {
+                    if(DEBUG>1) cerr << "OK";
+                    return(tmp);
+                }
+                else if((FRULES->r[i]->src->type()==TREE_TBINARY)&&FULLEASY) {
                     //бинарная операция в шаблоне, разбиваем на части и тянем друг к другу
+                    if(DEBUG>1) cerr << "BINARY... ";
                     a=FRULES->r[i]->src->geta();
                     b=FRULES->r[i]->src->getb();
                     if(tmp=tree_replace_r(src,a,b,FRULES->r[i])) {
+                        if(DEBUG>1) cerr << "OK";
                         return(tmp);
                     }
+                    else if(DEBUG>1) cerr << "FAILED";
                 }
+                else if(DEBUG>1) cerr << "FAILED";
             }
         }
         i++;
@@ -1359,6 +1370,12 @@ void settings_to_file(rules* R=FRULES,const char* filename=CONFFILE) {
             if(i<MATH_OPLIST->max) fputs(" ",file);
             i++;
         }
+        fputs("\t",file);
+        fputs(print_num(MAXITER),file);
+        fputs("\t",file);
+        fputs(print_num(DEBUG),file);
+        fputs("\t",file);
+        fputs(print(FULLEASY),file);
         fputs("\n",file);
         fputs(print_num(R->maxindex),file);
         fputs("\n",file);
@@ -1390,16 +1407,18 @@ void settings_from_file(const char* filename=CONFFILE) {
         buf=fgets(buf,BUFLEN,file);
         if(buf!=NULL&&buf[0]!=0) {
             strings* a=explode(buf,'\t');
-            if(a->max==6) {
-                remove_nl(a->strs[6]);
+            if(a->max==9) {
+                remove_nl(a->strs[9]);
                 MATH_VARS=a->strs[0];
                 MATH_FUNCS=a->strs[1];
                 MATH_NUMS=a->strs[2];
                 MATH_REPLS=a->strs[3];
                 MATH_DEFDIFF=a->strs[4];
                 MATH_OPS=string_to_operations(a->strs[5]);
-                //print_str(a->strs[6]);
                 MATH_OPLIST=explode(a->strs[6],' ');
+                MAXITER=atoi(a->strs[7]);
+                DEBUG=atoi(a->strs[8]);
+                FULLEASY=atob(a->strs[9]);
                 buf=fgets(buf,BUFLEN,file);
                 int i=0,m=atoi(buf);
                 if(m>=0) {
@@ -1616,6 +1635,7 @@ tree* calc(tree* src) {
 tree* rcalc(tree* src) {
     int stype=src->type();
     if(stype==TREE_TBINARY) {
+
         return(calc(new tree(rcalc(src->geta()),src->getvalue(),rcalc(src->getb()))));
     }
     if(stype==TREE_TFUNCTION||stype==TREE_TUNARY) {
@@ -1627,18 +1647,22 @@ tree* rcalc(tree* src) {
     return(src);
 }
 tree* easy(tree* src) {
-    static unsigned int iter=0;
-    tree* tmp=rcalc(easy_one(rcalc(src->copymem())));
-    if(*tmp==*src||iter>=MAXITER) {
-        iter=0;
-        return(src);
+    long long int alltime=mtime();
+    stime1=0;
+
+    unsigned int i=0;
+    tree* tmp=src->copymem(),*tmp1=new tree("");
+    do {
+        tmp1=tmp->copymem();
+        tmp=rcalc(easy_one(rcalc(tmp)));
+        if(DEBUG) cerr << "easy iter#" << i << "  " << tmp->display() << endl;
+        i++;
     }
-    else {
-        iter++;
-        //cerr << tmp->display(TREE_DMATHB);
-        return(easy_one(rcalc(easy(rcalc(tmp)))));
-    }
-//    return(src);
+    while(i<MAXITER&&*tmp!=*tmp1);
+
+    alltime=mtime()-alltime;
+    if(DEBUG) cerr << "sum: " << 100.0*stime1/alltime << "% (" << stime1 << ") of " << alltime << endl;
+    return(tmp);
 }
 tree* operate(tree* src,int operation,const char* base=MATH_DEFDIFF,rules* crules=FRULES,bool rmode=false) {
     unsigned int i=0,type=0;

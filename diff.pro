@@ -6,7 +6,6 @@ TEMPLATE = app
 SOURCES += main.cpp \
     diff.cpp \
     libdiff.cpp \
-    strs.cpp \
     funcs.cpp
 HEADERS += diff.h
 FORMS += diff.ui
