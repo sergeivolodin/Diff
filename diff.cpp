@@ -6,7 +6,7 @@ unsigned int sw=0;
 rules* parsetable(QTableWidget* a,int type) {
     int i=0;
     char* buf=NULL;
-    QTableWidgetItem *i1,*i2,*i3;
+    QTableWidgetItem *i1,*i2=NULL,*i3;
     rules* res=new rules;
     int c=a->rowCount();
     res->maxindex=-1;
@@ -23,9 +23,7 @@ rules* parsetable(QTableWidget* a,int type) {
                 buf=stradd(buf,MATH_CPOSTREPL);
                 buf=stradd(buf,i3->text().toAscii().data());
             }
-            if(buf) {
-                res->r[++(res->maxindex)]=parsestr(buf);
-            }
+            if(buf) res->r[++(res->maxindex)]=parsestr(buf);
         }
         i++;
     }
@@ -78,9 +76,7 @@ Diff::Diff(QWidget *parent) :
     ui->setupUi(this);
 }
 
-Diff::~Diff() {
-    delete ui;
-};
+Diff::~Diff() {delete ui;};
 void Diff::on_button_diff_clicked() {
     long int t=mtime();
     tree* src=parse(ui->line_src->toPlainText().toAscii().data());
@@ -89,11 +85,11 @@ void Diff::on_button_diff_clicked() {
     const char* base=strcp(ui->line_base->text().toAscii().data());
     QString a;
     if(src) {
-        res="src ok";
-        dest=operate(easy(src),1,base);
+        res=strcp("src ok");
+        dest=operate(src,1,base);
         if(dest) {
-            res="dest ok";
-            res=easy(dest)->display(TREE_DMATH);
+            res=strcp("dest ok");
+            res=dest->display(TREE_DMATH);
         }
     }
     a=res;
@@ -112,7 +108,6 @@ void Diff::update_settings() {
     MAXITER=ui->spinBox->value();
     FULLEASY=ui->checkBox_2->isChecked();
     DEBUG=ui->comboBox->currentIndex();
-    //printrules(FRULES);
 }
 void Diff::on_button_parse_clicked() {
     update_settings();
@@ -125,7 +120,7 @@ void Diff::on_button_easy_clicked() {
     char* res=strcp(ERROR);
     QString a;
     if(src) {
-        res="src ok";
+        res=strcp("src ok");
         dest=easy(src);
         if(dest) res=dest->display(TREE_DMATH);
     }
@@ -148,7 +143,6 @@ void Diff::changeEvent(QEvent *e) {
         if(sw==1) {
             settings_from_file();
             update_gui(ui);
-            //update_settings();
         }
         sw++;
     }
@@ -157,22 +151,10 @@ void Diff::changeEvent(QEvent *e) {
     case QEvent::LanguageChange:
         ui->retranslateUi(this);
         break;
-    default:
-        break;
+    default: break;
     }
 }
-void Diff::on_pushButton_2_clicked() {
-    ui->tableWidget_3->setRowCount(ui->tableWidget_3->rowCount()+1);
-}
-
-void Diff::on_pushButton_3_clicked() {
-    ui->tableWidget_3->setRowCount(ui->tableWidget_3->rowCount()-1);
-}
-
-void Diff::on_pushButton_4_clicked() {
-    ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()+1);
-}
-
-void Diff::on_pushButton_5_clicked() {
-    ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()-1);
-}
+void Diff::on_pushButton_2_clicked() {ui->tableWidget_3->setRowCount(ui->tableWidget_3->rowCount()+1);}
+void Diff::on_pushButton_3_clicked() {ui->tableWidget_3->setRowCount(ui->tableWidget_3->rowCount()-1);}
+void Diff::on_pushButton_4_clicked() {ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()+1);}
+void Diff::on_pushButton_5_clicked() {ui->tableWidget_2->setRowCount(ui->tableWidget_2->rowCount()-1);}

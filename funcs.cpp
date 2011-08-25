@@ -183,7 +183,7 @@ void remove_nl(strings* a) {
 }
 char* strings_merge(strings* a,const char *del=" ") {
     int i=0;
-    char* res="";
+    char* res=strcp("");
     while(i<=a->max) {
         res=stradd(res,a->strs[i]);
         if(i<a->max) {
