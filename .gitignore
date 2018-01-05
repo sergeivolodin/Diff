@@ -1,0 +1,5 @@
+Makefile
+*.pro.user*
+moc_*
+ui_*
+diff
